@@ -16,7 +16,6 @@ public class Task {
         return name;
     }
 
-
     public int getId() {
         return id;
     }
@@ -36,17 +35,16 @@ public class Task {
     @Override
     public boolean equals(Object o) {
         Task obj = (Task) o;
-        if(this.id == (obj.getId())) {
+        if (this.id == (obj.getId())) {
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }
 
     @Override
     public int hashCode() {
-        return id*17;
+        return id * 17;
     }
 
 }
