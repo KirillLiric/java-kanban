@@ -58,11 +58,12 @@ class MainTest {
     //Неизменность задачи при добавлении задачи в менеджер
     @Test
     void immutabilityTask() {
+        TaskManager manager = Managers.getDefault();
         String name = "Имя";
         String description = "Описание";
         Task task = new Task(name, description);
-        Managers.getDefault().addTask(task);
-        HashMap<Integer, Task> map = Managers.getDefault().getTaskMap();
+        manager.addTask(task);
+        HashMap<Integer, Task> map = manager.getTaskMap();
         Task task1 = map.get(task.getId());
         assertEquals(name, task1.getName(), "Поменялось имя");
         assertEquals(description, task1.getDescription(), "Поменялось описание");
@@ -71,37 +72,41 @@ class MainTest {
     //Проверка InMemoryTaskManager
     @Test
     void inMemoryTaskManagerTest() {
+        TaskManager manager = Managers.getDefault();
         Task testTask = new Task("Тестовая задача", "Тестовая задача");
-        Managers.getDefault().addTask(testTask);
+        manager.addTask(testTask);
         Epic testEpic = new Epic("Тестовый эпик", "Тестовый эпик");
-        Managers.getDefault().addEpic(testEpic);
+        manager.addEpic(testEpic);
         Subtask testSubtask = new Subtask("Тестовая подзадача", "Тестовая подзадача", testEpic.getId());
-        Managers.getDefault().addSubtask(testSubtask);
-        assertNotNull(Managers.getDefault().getTaskFromMap(testTask.getId()), "Задача не возвращается");
-        assertNotNull(Managers.getDefault().getEpicFromMap(testEpic.getId()), "Эпик не возвращается");
-        assertNotNull(Managers.getDefault().getSubtaskFromMap(testSubtask.getEpicID()), "Подзадача не возвращается");
+        manager.addSubtask(testSubtask);
+        assertNotNull(manager.getTaskFromMap(testTask.getId()), "Задача не возвращается");
+        assertNotNull(manager.getEpicFromMap(testEpic.getId()), "Эпик не возвращается");
+        assertNotNull(manager.getSubtaskFromMap(testSubtask.getId()), "Подзадача не возвращается");
         //Managers.getDefault().getTaskFromMap(testTask.getId())
     }
 
     //Проверка HistoryManager
     @Test
     void historyManagerTest() {
+        TaskManager manager = Managers.getDefault();
+        HistoryManager historyManager = Managers.getDefaultHistory();
+
         String taskName = "Старая тестовая задача";
         String taskDescription = "Описание старой задачи";
         String newTaskName = "Новая тестовая задача";
         String newTaskDescription = "Описание новой задачи";
 
         Task testTask = new Task(taskName, taskDescription);
-        Managers.getDefault().addTask(testTask);
-        Managers.getDefaultHistory().add(testTask);
+        manager.addTask(testTask);
+        historyManager.add(testTask);
 
         Task newTestTask = new Task(newTaskName, newTaskDescription);
         newTestTask.setId(testTask.getId());
-        Managers.getDefault().updateTask(newTestTask);
-        Managers.getDefaultHistory().add(newTestTask);
+        manager.updateTask(newTestTask);
+        historyManager.add(newTestTask);
 
-        String name = Managers.getDefaultHistory().getHistory().getFirst().getName();
-        String description = Managers.getDefaultHistory().getHistory().getFirst().getDescription();
+        String name = historyManager.getHistory().getFirst().getName();
+        String description = historyManager.getHistory().getFirst().getDescription();
 
         assertEquals(taskName, name, "Не сохраняет имя старой задачи");
         assertEquals(taskDescription, description, "Не сохраняет описание старой задачи");

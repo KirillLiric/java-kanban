@@ -2,7 +2,7 @@ import java.util.LinkedList;
 
 public class InMemoryHistoryManager implements HistoryManager{
 
-    private static LinkedList<Task> historyList = new LinkedList<>();
+    private LinkedList<Task> historyList = new LinkedList<>();
 
     //Добавление задачи в историю
 

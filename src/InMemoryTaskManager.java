@@ -1,12 +1,13 @@
 import java.util.HashMap;
+import java.util.List;
 
 public class InMemoryTaskManager implements TaskManager {
 
-    private static HashMap<Integer, Epic> epicMap = new HashMap<>();
-    private static HashMap<Integer, Task> taskMap = new HashMap<>();
-    private static HashMap<Integer, Subtask> subtaskMap = new HashMap<>();
+    private HashMap<Integer, Epic> epicMap = new HashMap<>();
+    private HashMap<Integer, Task> taskMap = new HashMap<>();
+    private HashMap<Integer, Subtask> subtaskMap = new HashMap<>();
 
-
+    InMemoryHistoryManager historyManager = new InMemoryHistoryManager();
 
     private int nextId = 0;
 
@@ -50,19 +51,19 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Task getEpicFromMap(int id) {
-        Managers.getDefaultHistory().add(epicMap.get(id));
+        historyManager.add(epicMap.get(id));
         return epicMap.get(id);
     }
 
     @Override
     public Task getTaskFromMap(int id) {
-        Managers.getDefaultHistory().add(taskMap.get(id));
+        historyManager.add(taskMap.get(id));
         return taskMap.get(id);
     }
 
     @Override
     public Task getSubtaskFromMap(int id) {
-        Managers.getDefaultHistory().add(subtaskMap.get(id));
+        historyManager.add(subtaskMap.get(id));
         return subtaskMap.get(id);
     }
 
@@ -145,6 +146,12 @@ public class InMemoryTaskManager implements TaskManager {
         return epic.getEpicSubtaskMap();
     }
 
+    //Получение истории
+
+    @Override
+    public List<Task> getHistory() {
+        return historyManager.getHistory();
+    }
 
 
     //Дополнительные методы
