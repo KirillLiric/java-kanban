@@ -84,7 +84,7 @@ class MainTest {
         assertNotNull(manager.getTaskFromMap(testTask.getId()), "Задача не возвращается");
         assertNotNull(manager.getEpicFromMap(testEpic.getId()), "Эпик не возвращается");
         assertNotNull(manager.getSubtaskFromMap(testSubtask.getId()), "Подзадача не возвращается");
-        //Managers.getDefault().getTaskFromMap(testTask.getId())
+
     }
 
     //Проверка HistoryManager
@@ -103,7 +103,7 @@ class MainTest {
         historyManager.add(testTask);
 
         Task newTestTask = new Task(newTaskName, newTaskDescription);
-        newTestTask.setId(testTask.getId());
+        newTestTask.setId(newTestTask.getId());
         manager.updateTask(newTestTask);
         historyManager.add(newTestTask);
 
@@ -113,4 +113,6 @@ class MainTest {
         assertEquals(taskName, name, "Не сохраняет имя старой задачи");
         assertEquals(taskDescription, description, "Не сохраняет описание старой задачи");
     }
+
+
 }
