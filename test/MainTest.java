@@ -90,29 +90,27 @@ class MainTest {
     //Проверка HistoryManager
     @Test
     void historyManagerTest() {
+
         TaskManager manager = Managers.getDefault();
         HistoryManager historyManager = Managers.getDefaultHistory();
 
-        String taskName = "Старая тестовая задача";
-        String taskDescription = "Описание старой задачи";
-        String newTaskName = "Новая тестовая задача";
-        String newTaskDescription = "Описание новой задачи";
+        //Проверка на хранение задач с одним и тем же id
+        Task task1 = new Task("Первая задача", "Первая задача");
+        Task task2 = new Task("Вторая задача", "Вторая задача");
+        manager.addTask(task1);
+        manager.addTask(task2);
+        task1.setId(17);
+        task2.setId(17);
+        historyManager.add(task1);
+        historyManager.add(task2);
+        assertEquals(historyManager.getHistory().size(), 1, "Хранит задачи с одним и тем же id");
 
-        Task testTask = new Task(taskName, taskDescription);
-        manager.addTask(testTask);
-        historyManager.add(testTask);
+        //Проверка на изменение id задачи с помощью сеттера в ходе выполнения программы
 
-        Task newTestTask = new Task(newTaskName, newTaskDescription);
-        newTestTask.setId(newTestTask.getId());
-        manager.updateTask(newTestTask);
-        historyManager.add(newTestTask);
+        task2.setId(18);
+        historyManager.add(task2);
+        assertEquals(historyManager.getHistory().size(), 2, "Некорректно добавляет задачи 1");
 
-        String name = historyManager.getHistory().getFirst().getName();
-        String description = historyManager.getHistory().getFirst().getDescription();
-
-        assertEquals(taskName, name, "Не сохраняет имя старой задачи");
-        assertEquals(taskDescription, description, "Не сохраняет описание старой задачи");
     }
-
 
 }
