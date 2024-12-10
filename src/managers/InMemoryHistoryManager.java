@@ -10,7 +10,6 @@ public class InMemoryHistoryManager implements HistoryManager {
     private final CustomLinkedList customList = new CustomLinkedList();
     private final HashMap<Integer, Node> historyMap = new HashMap<>();
 
-
     //Добавление задачи в историю
 
     @Override
