@@ -90,18 +90,22 @@ public class InMemoryHistoryManager implements HistoryManager {
         }
 
     }
-}
 
-//Узел
-class Node {
-    Task task;
-    Node prev;
-    Node next;
+    //Узел
+    class Node {
+        Task task;
+        Node prev;
+        Node next;
 
-    Node(Task task) {
-        this.task = task;
+        Node(Task task) {
+            this.task = task;
+        }
     }
+
 }
+
+
+
 
 
 
