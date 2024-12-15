@@ -145,6 +145,7 @@ public class InMemoryTaskManager implements TaskManager {
         HashMap<Integer, Subtask> epicSubtaskMap = epic.getEpicSubtaskMap();
         epicSubtaskMap.remove(subtask.getId());
         checkEpicStatus(epic, epicSubtaskMap);
+        subtask.setNullEpicId();
         historyManager.remove(subtask.getId());
         subtaskMap.remove(subtask.getId());
     }

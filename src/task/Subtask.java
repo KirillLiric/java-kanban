@@ -15,4 +15,8 @@ public class Subtask extends Task {
     public void setEpicID(int epicID) {
         this.epicID = epicID;
     }
+
+    public void setNullEpicId() {
+        this.epicID = -1;
+    }
 }
