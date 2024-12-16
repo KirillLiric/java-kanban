@@ -43,7 +43,7 @@ class MainTest {
 
     //Проверка Эпика
     @Test
-    void checkEpic() {
+    void checkEpic() throws ManagerSaveException {
         Epic epic1 = new Epic("Тестовый эпик", "Эпик для проверки подзадач");
         Managers.getDefault().addEpic(epic1);
     }
@@ -57,7 +57,7 @@ class MainTest {
 
     //Неизменность задачи при добавлении задачи в менеджер
     @Test
-    void immutabilityTask() {
+    void immutabilityTask() throws ManagerSaveException {
         TaskManager manager = Managers.getDefault();
         String name = "Имя";
         String description = "Описание";
@@ -71,7 +71,7 @@ class MainTest {
 
     //Проверка InMemoryTaskManager
     @Test
-    void inMemoryTaskManagerTest() {
+    void inMemoryTaskManagerTest() throws ManagerSaveException {
         TaskManager manager = Managers.getDefault();
         Task testTask = new Task("Тестовая задача", "Тестовая задача");
         manager.addTask(testTask);
@@ -87,7 +87,7 @@ class MainTest {
 
     //Проверка HistoryManager
     @Test
-    void historyManagerTest() {
+    void historyManagerTest() throws ManagerSaveException {
 
         TaskManager manager = Managers.getDefault();
         HistoryManager historyManager = Managers.getDefaultHistory();
@@ -120,7 +120,7 @@ class MainTest {
 
     //Проверка целостности задач
     @Test
-    void checkIntegrity() {
+    void checkIntegrity() throws ManagerSaveException {
 
         TaskManager manager = Managers.getDefault();
 
@@ -135,7 +135,7 @@ class MainTest {
                 epic1.getEpicSubtaskMap().containsKey(subtask2.getId())), "Эпик не хранит данные подзадач");
 
 
-        manager.deleteSubtask(subtask1);
+        manager.deleteSubtask(subtask1.getId());
         assertFalse(epic1.getEpicSubtaskMap().containsKey(subtask1.getId()), "Эпик хранит удаленную подзадачу");
 
         assertNotEquals(epic1.getId(), subtask1.getEpicID(), "Удаленная подзадача хранит id эпика");
