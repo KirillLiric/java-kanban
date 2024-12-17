@@ -2,21 +2,15 @@ package managers;
 
 import task.*;
 
-import java.io.BufferedWriter;
-import java.io.BufferedReader;
-import java.io.FileWriter;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
 
     private Path saveFile;
 
-    FileBackedTaskManager(String saveFile) {
-        this.saveFile = Paths.get(saveFile);
+    FileBackedTaskManager(Path saveFile) {
+        this.saveFile = saveFile;
     }
 
     public void save() {
@@ -68,27 +62,33 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     public static FileBackedTaskManager loadFromFile(File file) {
-        FileBackedTaskManager manager = new FileBackedTaskManager(file);
+        FileBackedTaskManager manager = new FileBackedTaskManager(file.toPath());
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
+            Task task;
             while ((line = reader.readLine()) != null) {
                 if (line.trim().isEmpty()) {
                     continue;
                 } else {
                     task = fromString(line);
+
+                    if (task instanceof Epic) {
+                        Epic epic = (Epic) task;
+                        epicMap.put(epic.getId(), epic);
+                    } else if (task instanceof Subtask) {
+                        Subtask subtask = (Subtask) task;
+                        subtaskMap.put(subtask.getId(), subtask);
+                    } else {
+                        taskMap.put(task.getId(), task);
+                    }
                 }
             }
         } catch (IOException e) {
             throw new ManagerSaveException();
-        } catch (NumberFormatException e) {
-            throw new ManagerSaveException();
         }
-
         return manager;
     }
-
-
 
     //Удаление всех задач
 
