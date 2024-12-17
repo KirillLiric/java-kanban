@@ -16,7 +16,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     private final HistoryManager historyManager = Managers.getDefaultHistory();
 
-    private int nextId = 0;
+    static int nextId = 0;
 
     //Получение списка задач
     @Override

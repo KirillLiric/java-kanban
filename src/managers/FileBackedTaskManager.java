@@ -4,6 +4,7 @@ import task.*;
 
 import java.io.*;
 import java.nio.file.Path;
+import java.util.ArrayList;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
 
@@ -63,7 +64,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public static FileBackedTaskManager loadFromFile(File file) {
         FileBackedTaskManager manager = new FileBackedTaskManager(file.toPath());
-
+        ArrayList<Integer> IdList = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             Task task;
@@ -72,18 +73,28 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     continue;
                 } else {
                     task = fromString(line);
-
                     if (task instanceof Epic) {
                         Epic epic = (Epic) task;
+                        IdList.add(epic.getId());
                         epicMap.put(epic.getId(), epic);
                     } else if (task instanceof Subtask) {
                         Subtask subtask = (Subtask) task;
+                        IdList.add(subtask.getId());
                         subtaskMap.put(subtask.getId(), subtask);
+                        epicMap.get(subtask.getEpicID()).getEpicSubtaskMap().put(subtask.getId(), subtask);
                     } else {
+                        IdList.add(task.getId());
                         taskMap.put(task.getId(), task);
                     }
                 }
             }
+            int max = -1;
+            for (Integer i : IdList) {
+                if (i > max) {
+                    max = i;
+                }
+            }
+            nextId = max + 1;
         } catch (IOException e) {
             throw new ManagerSaveException();
         }
