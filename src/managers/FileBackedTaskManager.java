@@ -16,7 +16,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public void save() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(saveFile.toFile()))) {
-
             for (Task task : taskMap.values()) {
                 writer.write(task.toString() + "\n");
             }
@@ -34,7 +33,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     public static Task fromString(String value) {
         String[] taskText = value.split(",");
         Task task;
-        if(Tasks.TASK.toString().equals(taskText[1])) {
+
+        if (Tasks.TASK.toString().equals(taskText[1])) {
             task = new Task(taskText[2], taskText[4]);
             task.setId(Integer.parseInt(taskText[0]));
             task.setStatus(getStatus(taskText[3]));
@@ -64,7 +64,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public static FileBackedTaskManager loadFromFile(File file) {
         FileBackedTaskManager manager = new FileBackedTaskManager(file.toPath());
-        ArrayList<Integer> IdList = new ArrayList<>();
+        ArrayList<Integer> idList = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             Task task;
@@ -75,21 +75,21 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     task = fromString(line);
                     if (task instanceof Epic) {
                         Epic epic = (Epic) task;
-                        IdList.add(epic.getId());
+                        idList.add(epic.getId());
                         epicMap.put(epic.getId(), epic);
                     } else if (task instanceof Subtask) {
                         Subtask subtask = (Subtask) task;
-                        IdList.add(subtask.getId());
+                        idList.add(subtask.getId());
                         subtaskMap.put(subtask.getId(), subtask);
                         epicMap.get(subtask.getEpicID()).getEpicSubtaskMap().put(subtask.getId(), subtask);
                     } else {
-                        IdList.add(task.getId());
+                        idList.add(task.getId());
                         taskMap.put(task.getId(), task);
                     }
                 }
             }
             int max = -1;
-            for (Integer i : IdList) {
+            for (Integer i : idList) {
                 if (i > max) {
                     max = i;
                 }
