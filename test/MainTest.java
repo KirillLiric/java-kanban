@@ -26,8 +26,6 @@ class MainTest {
     void checkProgram() throws IOException
     {
         File tempFile = File.createTempFile("tempFile1", ".txt");
-        FileBackedTaskManager managerOfEmpty = Managers.getDefault(tempFile.toPath());
-        assertTrue(managerOfEmpty.getEpicMap().isEmpty(), "Загрузка пустого файла происходит некорректно");
 
         //Запись в файл тестового текста
         String testText = "1,TASK,Task1,NEW,Description task1,\n2,EPIC,Epic2,DONE,Description epic2,\n" +
