@@ -10,13 +10,13 @@ import java.util.List;
 
 public class InMemoryTaskManager implements TaskManager {
 
-    private HashMap<Integer, Epic> epicMap = new HashMap<>();
-    private HashMap<Integer, Task> taskMap = new HashMap<>();
-    private HashMap<Integer, Subtask> subtaskMap = new HashMap<>();
+    static HashMap<Integer, Epic> epicMap = new HashMap<>();
+    static HashMap<Integer, Task> taskMap = new HashMap<>();
+    static HashMap<Integer, Subtask> subtaskMap = new HashMap<>();
 
     private final HistoryManager historyManager = Managers.getDefaultHistory();
 
-    private int nextId = 0;
+    static int nextId = 0;
 
     //Получение списка задач
     @Override
@@ -140,7 +140,8 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void deleteSubtask(Subtask subtask) {
+    public void deleteSubtask(int id) {
+        Subtask subtask = subtaskMap.get(id);
         Epic epic = epicMap.get(subtask.getEpicID());
         HashMap<Integer, Subtask> epicSubtaskMap = epic.getEpicSubtaskMap();
         epicSubtaskMap.remove(subtask.getId());

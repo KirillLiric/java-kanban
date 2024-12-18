@@ -15,4 +15,9 @@ public class Epic extends Task {
         return epicSubtaskMap;
     }
 
+    @Override
+    public String toString() {
+        return super.id + "," + Tasks.EPIC + "," + super.name + "," + super.status + "," + super.description;
+    }
+
 }
