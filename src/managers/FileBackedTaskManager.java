@@ -8,13 +8,13 @@ import java.util.ArrayList;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
 
-    private Path saveFile;
+    private final Path saveFile;
 
     FileBackedTaskManager(Path saveFile) {
         this.saveFile = saveFile;
     }
 
-    public void save() {
+    private void save() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(saveFile.toFile()))) {
             for (Task task : taskMap.values()) {
                 writer.write(task.toString() + "\n");
