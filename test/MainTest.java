@@ -46,8 +46,6 @@ class MainTest {
     void checkEpic() {
         Epic epic1 = new Epic("Тестовый эпик", "Эпик для проверки подзадач");
         Managers.getDefault().addEpic(epic1);
-
-
     }
 
     //Проинициализированные и готовые к работе экземпляры менеджеров
@@ -84,33 +82,64 @@ class MainTest {
         assertNotNull(manager.getTaskFromMap(testTask.getId()), "Задача не возвращается");
         assertNotNull(manager.getEpicFromMap(testEpic.getId()), "Эпик не возвращается");
         assertNotNull(manager.getSubtaskFromMap(testSubtask.getId()), "Подзадача не возвращается");
-        //Managers.getDefault().getTaskFromMap(testTask.getId())
+
     }
 
     //Проверка HistoryManager
     @Test
     void historyManagerTest() {
+
         TaskManager manager = Managers.getDefault();
         HistoryManager historyManager = Managers.getDefaultHistory();
 
-        String taskName = "Старая тестовая задача";
-        String taskDescription = "Описание старой задачи";
-        String newTaskName = "Новая тестовая задача";
-        String newTaskDescription = "Описание новой задачи";
+        //Проверка на хранение задач с одним и тем же id
+        Task task1 = new Task("Первая задача", "Первая задача");
+        Task task2 = new Task("Вторая задача", "Вторая задача");
+        Task task3 = new Task("Третья задача", "Третья задача");
 
-        Task testTask = new Task(taskName, taskDescription);
-        manager.addTask(testTask);
-        historyManager.add(testTask);
+        manager.addTask(task1);
+        manager.addTask(task2);
+        manager.addTask(task3);
 
-        Task newTestTask = new Task(newTaskName, newTaskDescription);
-        newTestTask.setId(testTask.getId());
-        manager.updateTask(newTestTask);
-        historyManager.add(newTestTask);
+        historyManager.add(task1);
+        historyManager.add(task2);
+        historyManager.add(task3);
+        assertEquals(historyManager.getHistory().size(), 3, "Операция добавления работает некорректно");
 
-        String name = historyManager.getHistory().getFirst().getName();
-        String description = historyManager.getHistory().getFirst().getDescription();
+        historyManager.add(task1);
+        historyManager.add(task2);
+        historyManager.add(task3);
+        assertEquals(historyManager.getHistory().size(), 3, "Хранит задачи с одним Id");
 
-        assertEquals(taskName, name, "Не сохраняет имя старой задачи");
-        assertEquals(taskDescription, description, "Не сохраняет описание старой задачи");
+        historyManager.remove(task1.getId());
+        assertEquals(historyManager.getHistory().size(), 2, "Некорректно удаляет задачи");
+
+        assertNotNull(historyManager.getHistory(), "История не возвращается");
+
     }
+
+    //Проверка целостности задач
+    @Test
+    void checkIntegrity() {
+
+        TaskManager manager = Managers.getDefault();
+
+        Epic epic1 = new Epic("Тестовый эпик", "Эпик для проверки подзадач");
+        manager.addEpic(epic1);
+        Subtask subtask1 = new Subtask("Первый подзадача", "Первая подзадача", epic1.getId());
+        Subtask subtask2 = new Subtask("Вторая подзадача", "Вторая подзадача", epic1.getId());
+        manager.addSubtask(subtask1);
+        manager.addSubtask(subtask2);
+
+        assertTrue((epic1.getEpicSubtaskMap().containsKey(subtask1.getId()) &&
+                epic1.getEpicSubtaskMap().containsKey(subtask2.getId())), "Эпик не хранит данные подзадач");
+
+
+        manager.deleteSubtask(subtask1);
+        assertFalse(epic1.getEpicSubtaskMap().containsKey(subtask1.getId()), "Эпик хранит удаленную подзадачу");
+
+        assertNotEquals(epic1.getId(), subtask1.getEpicID(), "Удаленная подзадача хранит id эпика");
+
+    }
+
 }
