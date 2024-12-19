@@ -38,11 +38,18 @@ public class Epic extends Task {
 
     @Override
     public Duration getDuration() {
-        Duration totalDuration = Duration.ZERO;
-        for (Subtask subtask : epicSubtaskMap.values()) {
-            totalDuration = totalDuration.plus(subtask.getDuration());
-        }
-        return totalDuration;
+        return epicSubtaskMap.values().stream()
+                .map(Subtask::getDuration)
+                .reduce(Duration.ZERO, Duration::plus);
+    }
+
+    @Override
+    public LocalDateTime getEndTime() {
+        Optional<LocalDateTime> maxTime = epicSubtaskMap.values().stream()
+                .map(Subtask::getStartTime)
+                .filter(startTime -> startTime != null)
+                .max(LocalDateTime::compareTo);
+        return maxTime.orElse(null);
     }
 
 }

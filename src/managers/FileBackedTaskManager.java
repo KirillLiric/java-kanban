@@ -5,6 +5,9 @@ import task.*;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
 
@@ -104,6 +107,15 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
         return manager;
     }
+
+    public List<Task> getPrioritizedTasks() {
+        return taskMap.values().stream()
+                .filter(task -> task.getStartTime() != null) // Игнорируем задачи без времени начала
+                .sorted(Comparator.comparing(Task::getStartTime))
+                .collect(Collectors.toList());
+    }
+
+
 
     //Удаление всех задач
 
