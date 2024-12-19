@@ -28,8 +28,11 @@ class MainTest {
         File tempFile = File.createTempFile("tempFile1", ".txt");
 
         //Запись в файл тестового текста
-        String testText = "1,TASK,Task1,NEW,Description task1,\n2,EPIC,Epic2,DONE,Description epic2,\n" +
-                "3,SUBTASK,Sub Task2,DONE,Description sub task3,2";
+        String testText = "1,TASK,Task1,NEW,Description task1,2024-12-19T10:56:01.918810,10\n2,EPIC,Epic2,DONE,Description epic2,\n" +
+               "3,SUBTASK,Sub Task2,DONE,Description sub task3,2,2024-12-19T12:56:01.918810,15";
+
+       // String testText = "1,TASK,Task1,NEW,Description task1,2024-12-19T10:56:01.918810,10\n";
+
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
             writer.write(testText);
@@ -39,6 +42,9 @@ class MainTest {
 
         FileBackedTaskManager manager = Managers.getDefault(tempFile.toPath());
         manager.loadFromFile(tempFile);
+
+        System.out.println(manager.getTaskMap());
+
         String[] massText = testText.split("\n");
         assertTrue(manager.getTaskMap().containsValue(manager.fromString(massText[0])), "Не импортирует задачу");
 

@@ -1,11 +1,16 @@
 package task;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 public class Task {
 
     String name;
     String description;
     Integer id;
     Status status;
+    Duration duration;
+    LocalDateTime startTime;
 
     public Task(String name, String description) {
         this.name = name;
@@ -37,6 +42,14 @@ public class Task {
         this.status = status;
     }
 
+    public void setStartTime(String data) {
+        this.startTime = LocalDateTime.parse(data);
+    }
+
+    public void setDuration(String data) {
+        this.duration = Duration.ofMinutes(Integer.parseInt(data));
+    }
+
     @Override
     public boolean equals(Object o) {
         Task obj = (Task) o;
@@ -54,7 +67,20 @@ public class Task {
 
     @Override
     public String toString() {
-        return id + "," + Tasks.TASK + "," + name + "," + status + "," + description;
+        return id + "," + Tasks.TASK + "," + name + "," + status + "," + description + "," + startTime + ","
+                + duration.toMinutes();
+    }
+
+    public LocalDateTime getEndTime() {
+        return  startTime.plus(duration);
+    }
+
+    public LocalDateTime getStartTime() {
+        return  startTime;
+    }
+
+    public Duration getDuration() {
+        return  duration;
     }
 
 }

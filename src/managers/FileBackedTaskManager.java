@@ -38,6 +38,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             task = new Task(taskText[2], taskText[4]);
             task.setId(Integer.parseInt(taskText[0]));
             task.setStatus(getStatus(taskText[3]));
+            task.setStartTime(taskText[5]);
+            task.setDuration(taskText[6]);
         } else if (Tasks.EPIC.toString().equals(taskText[1])) {
             task = new Epic(taskText[2], taskText[4]);
             task.setId(Integer.parseInt(taskText[0]));
@@ -46,6 +48,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             task = new Subtask(taskText[2], taskText[4], Integer.parseInt(taskText[5]));
             task.setId(Integer.parseInt(taskText[0]));
             task.setStatus(getStatus(taskText[3]));
+            task.setStartTime(taskText[6]);
+            task.setDuration(taskText[7]);
         } else {
             task = null;
         }

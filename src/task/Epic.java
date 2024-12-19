@@ -1,8 +1,14 @@
 package task;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.Optional;
 
 public class Epic extends Task {
+
+    LocalDateTime startTime = getStartTime();
+    Duration duration = getDuration();
 
     private HashMap<Integer, Subtask> epicSubtaskMap;
 
@@ -17,7 +23,26 @@ public class Epic extends Task {
 
     @Override
     public String toString() {
-        return super.id + "," + Tasks.EPIC + "," + super.name + "," + super.status + "," + super.description;
+        return super.id + "," + Tasks.EPIC + "," + super.name + "," + super.status + "," + super.description + ","
+                + startTime + "," + duration;
+    }
+
+    @Override
+    public LocalDateTime getStartTime() {
+        Optional<LocalDateTime> minStartTime = epicSubtaskMap.values().stream()
+                .map(Subtask::getStartTime)
+                .filter(startTime -> startTime != null)
+                .min(LocalDateTime::compareTo);
+        return minStartTime.orElse(null);
+    }
+
+    @Override
+    public Duration getDuration() {
+        Duration totalDuration = Duration.ZERO;
+        for (Subtask subtask : epicSubtaskMap.values()) {
+            totalDuration = totalDuration.plus(subtask.getDuration());
+        }
+        return totalDuration;
     }
 
 }

@@ -23,6 +23,6 @@ public class Subtask extends Task {
     @Override
     public String toString() {
         return super.id + "," + Tasks.SUBTASK + "," + super.name + "," + super.status + "," + super.description + ","
-                + getEpicID();
+                + getEpicID() + "," + super.startTime + "," + super.duration;
     }
 }
