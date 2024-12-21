@@ -7,8 +7,8 @@ import java.util.Optional;
 
 public class Epic extends Task {
 
-    LocalDateTime startTime = getStartTime();
-    Duration duration = getDuration();
+    LocalDateTime startTime;
+    Duration duration;
 
     private HashMap<Integer, Subtask> epicSubtaskMap;
 
@@ -24,7 +24,7 @@ public class Epic extends Task {
     @Override
     public String toString() {
         return super.id + "," + Tasks.EPIC + "," + super.name + "," + super.status + "," + super.description + ","
-                + startTime + "," + duration;
+                + startTime + "," + duration.toMinutes();
     }
 
     @Override
@@ -45,11 +45,16 @@ public class Epic extends Task {
 
     @Override
     public LocalDateTime getEndTime() {
-        Optional<LocalDateTime> maxTime = epicSubtaskMap.values().stream()
-                .map(Subtask::getStartTime)
-                .filter(startTime -> startTime != null)
-                .max(LocalDateTime::compareTo);
-        return maxTime.orElse(null);
+        LocalDateTime startTime = getStartTime();
+        if (startTime != null) {
+            return startTime.plus(getDuration());
+        }
+        return null;
+    }
+
+    public void checkTime() {
+        startTime = getStartTime();
+        duration = getDuration();
     }
 
 }

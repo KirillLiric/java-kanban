@@ -106,8 +106,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateEpic(Epic epic) {
         epicMap.put(epic.getId(), epic);
-        HashMap<Integer, Subtask> epicSubtaskMap = epic.getEpicSubtaskMap();
-        checkEpicStatus(epic, epicSubtaskMap);
+        checkEpicStatus(epic);
     }
 
     @Override
@@ -116,7 +115,7 @@ public class InMemoryTaskManager implements TaskManager {
         Epic epic = epicMap.get(subtask.getEpicID());
         HashMap<Integer, Subtask> epicSubtaskMap = epic.getEpicSubtaskMap();
         epicSubtaskMap.put(subtask.getId(), subtask);
-        checkEpicStatus(epic, epicSubtaskMap);
+        checkEpicStatus(epic);
     }
 
     //Удаление по id
@@ -145,7 +144,7 @@ public class InMemoryTaskManager implements TaskManager {
         Epic epic = epicMap.get(subtask.getEpicID());
         HashMap<Integer, Subtask> epicSubtaskMap = epic.getEpicSubtaskMap();
         epicSubtaskMap.remove(subtask.getId());
-        checkEpicStatus(epic, epicSubtaskMap);
+        checkEpicStatus(epic);
         subtask.setNullEpicId();
         historyManager.remove(subtask.getId());
         subtaskMap.remove(subtask.getId());
@@ -171,27 +170,27 @@ public class InMemoryTaskManager implements TaskManager {
 
     //Проверка статуса эпика
 
-    public void checkEpicStatus(Epic epic, HashMap<Integer, Subtask> epicSubtaskMap) {
-        epicSubtaskMap = epic.getEpicSubtaskMap();
-        int j = 0;
-        int k = 0;
-        if (epicSubtaskMap.isEmpty()) {
-            epic.setStatus(Status.NEW);
-        } else {
-            for (Integer i : epicSubtaskMap.keySet()) {
-                if (Status.DONE.equals(epicSubtaskMap.get(i).getStatus())) {
-                    j++;
-                } else if (Status.NEW.equals(epicSubtaskMap.get(i).getStatus())) {
-                    k++;
-                }
-            }
+    public void checkEpicStatus(Epic epic) {
+
+        if (epic.getEpicSubtaskMap().isEmpty()) {
+           epic.setStatus(Status.NEW); // Или любое другое значение по умолчанию
         }
-        if (j == epicSubtaskMap.size()) {
-            epic.setStatus(Status.DONE);
-        } else if (k == epicSubtaskMap.size()) {
-            epic.setStatus(Status.NEW);
-        } else {
+
+        boolean hasInProgress =
+                ((epic.getEpicSubtaskMap().values().stream()
+                .anyMatch(subtask -> subtask.getStatus() == Status.IN_PROGRESS)) ||
+                        (epic.getEpicSubtaskMap().values().stream()
+                                .anyMatch(subtask -> subtask.getStatus() == Status.DONE)));
+
+        boolean hasDone = epic.getEpicSubtaskMap().values().stream()
+                .allMatch(subtask -> subtask.getStatus() == Status.DONE);
+
+        if (hasInProgress) {
             epic.setStatus(Status.IN_PROGRESS);
+        } else if (hasDone) {
+            epic.setStatus(Status.DONE);
+        } else {
+            epic.setStatus(Status.NEW);
         }
     }
 
