@@ -9,7 +9,6 @@ public class Epic extends Task {
 
     LocalDateTime startTime;
     Duration duration;
-
     private HashMap<Integer, Subtask> epicSubtaskMap;
 
     public Epic(String name, String description) {
