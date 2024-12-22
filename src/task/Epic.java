@@ -15,7 +15,6 @@ public class Epic extends Task {
         super(name, description);
         this.epicSubtaskMap = new HashMap<>();
     }
-
     public HashMap<Integer, Subtask> getEpicSubtaskMap() {
         return epicSubtaskMap;
     }
@@ -57,7 +56,6 @@ public class Epic extends Task {
         startTime = getStartTime();
         duration = getDuration();
     }
-
     public void checkStatus() {
 
         if (epicSubtaskMap.isEmpty()) {
@@ -82,5 +80,4 @@ public class Epic extends Task {
             super.setStatus(Status.NEW);
         }
     }
-
 }
