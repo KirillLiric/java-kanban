@@ -17,7 +17,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     private final TreeSet<Task> prioritizedList;
 
-    FileBackedTaskManager(Path saveFile) {
+    public FileBackedTaskManager(Path saveFile) {
         this.saveFile = saveFile;
         this.prioritizedList = new TreeSet<>(Comparator.comparing(Task::getStartTime));
     }
@@ -73,7 +73,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-    public static FileBackedTaskManager loadFromFile(File file) {
+    public FileBackedTaskManager loadFromFile(File file) {
         FileBackedTaskManager manager = new FileBackedTaskManager(file.toPath());
         ArrayList<Integer> idList = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -93,9 +93,12 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                         idList.add(subtask.getId());
                         subtaskMap.put(subtask.getId(), subtask);
                         epicMap.get(subtask.getEpicID()).getEpicSubtaskMap().put(subtask.getId(), subtask);
+                        epicMap.get(subtask.getEpicID()).checkTime();
+                        epicMap.get(subtask.getEpicID()).checkStatus();
                     } else {
                         idList.add(task.getId());
                         taskMap.put(task.getId(), task);
+
                     }
                 }
             }

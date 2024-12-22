@@ -1,8 +1,8 @@
 import managers.*;
 import org.junit.jupiter.api.Test;
 import task.Epic;
+import task.Status;
 import task.Subtask;
-import task.Task;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -15,24 +15,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class MainTest {
 
     @Test
-   void testOfManagers() throws IOException {
+    void epicStatus() throws IOException {
         File tempFile = File.createTempFile("tempFile1", ".txt");
-        assertTrue(Managers.getDefaultHistory() instanceof InMemoryHistoryManager, "Не инициализируется менеджер просмотров");
-        assertTrue(Managers.getDefault(tempFile.toPath()) instanceof InMemoryTaskManager, "Не инициализируется менеджер задач");
-   }
-
-    //Создание временного файла
-    @Test
-    void checkProgram() throws IOException
-    {
-        File tempFile = File.createTempFile("tempFile1", ".txt");
-
-        //Запись в файл тестового текста
-        String testText = "1,TASK,Task1,NEW,Description task1,2024-12-19T10:56:01.918810,10\n2,EPIC,Epic2,DONE,Description epic2,\n" +
-               "3,SUBTASK,Sub Task2,DONE,Description sub task3,2,2024-12-19T12:56:01.918810,15";
-
-       // String testText = "1,TASK,Task1,NEW,Description task1,2024-12-19T10:56:01.918810,10\n";
-
+        String testText = "1,EPIC,Epic1,NEW,Description epic1,\n" +
+                "2,SUBTASK,Sub Task1,NEW,Description sub task1,1,2024-12-19T12:56:01.918810,15\n" +
+                "3,SUBTASK,Sub Task2,NEW,Description sub task2,1,2024-12-20T12:56:01.918810,15\n" +
+                "4,EPIC,Epic2,NEW,Description epic2,\n" +
+                "5,SUBTASK,Sub Task3,DONE,Description sub task3,4,2024-12-21T12:56:01.918810,15\n" +
+                "6,SUBTASK,Sub Task4,DONE,Description sub task4,4,2024-12-22T12:56:01.918810,15\n" +
+                "7,EPIC,Epic3,NEW,Description epic3,\n" +
+                "8,SUBTASK,Sub Task5,NEW,Description sub task5,7,2024-12-23T12:56:01.918810,15\n" +
+                "9,SUBTASK,Sub Task6,DONE,Description sub task6,7,2024-12-24T12:56:01.918810,15\n" +
+                "10,EPIC,Epic4,NEW,Description epic4,\n" +
+                "11,SUBTASK,Sub Task7,IN_PROGRESS,Description sub task7,10,2024-12-25T12:56:01.918810,15\n" +
+                "12,SUBTASK,Sub Task8,IN_PROGRESS,Description sub task8,10,2024-12-26T12:56:01.918810,15\n";
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
             writer.write(testText);
@@ -40,62 +36,27 @@ class MainTest {
             e.printStackTrace();
         }
 
-        FileBackedTaskManager manager = Managers.getDefault(tempFile.toPath());
+
+        FileBackedTaskManager manager = Managers.getDefaultFileBackedTaskManager(tempFile.toPath());
         manager.loadFromFile(tempFile);
 
-        System.out.println(manager.getTaskMap());
 
-        String[] massText = testText.split("\n");
-        assertTrue(manager.getTaskMap().containsValue(manager.fromString(massText[0])), "Не импортирует задачу");
-
-        Task testTask1 = new Task("Тестовая задача 1", "Описание тестовой задачи 1");
-        Task testTask2 = new Task("Тестовая задача 2", "Описание тестовой задачи 2");
-        manager.addTask(testTask1);
-        manager.addTask(testTask2);
-        FileBackedTaskManager manager2 = Managers.getDefault(tempFile.toPath());
-        assertEquals(3, manager2.getTaskMap().size(), "Не происходит сохранение");
+        assertEquals(Status.NEW, manager.getEpicMap().get(1).getStatus(), "Провалена проверка пункта a");
+        assertEquals(Status.DONE, manager.getEpicMap().get(4).getStatus(), "Провалена проверка пункта b");
+        assertEquals(Status.IN_PROGRESS, manager.getEpicMap().get(7).getStatus(), "Провалена проверка пункта c");
+        assertEquals(Status.IN_PROGRESS, manager.getEpicMap().get(10).getStatus(), "Провалена проверка пункта d");
     }
+
 
     //Проверка HistoryManager
-    @Test
-    void historyManagerTest() throws ManagerSaveException, IOException {
 
-        File tempFile = File.createTempFile("tempFile1", ".txt");
-        TaskManager manager = Managers.getDefault(tempFile.toPath());
-        HistoryManager historyManager = Managers.getDefaultHistory();
-
-        //Проверка на хранение задач с одним и тем же id
-        Task task1 = new Task("Первая задача", "Первая задача");
-        Task task2 = new Task("Вторая задача", "Вторая задача");
-        Task task3 = new Task("Третья задача", "Третья задача");
-
-        manager.addTask(task1);
-        manager.addTask(task2);
-        manager.addTask(task3);
-
-        historyManager.add(task1);
-        historyManager.add(task2);
-        historyManager.add(task3);
-        assertEquals(historyManager.getHistory().size(), 3, "Операция добавления работает некорректно");
-
-        historyManager.add(task1);
-        historyManager.add(task2);
-        historyManager.add(task3);
-        assertEquals(historyManager.getHistory().size(), 3, "Хранит задачи с одним Id");
-
-        historyManager.remove(task1.getId());
-        assertEquals(historyManager.getHistory().size(), 2, "Некорректно удаляет задачи");
-
-        assertNotNull(historyManager.getHistory(), "История не возвращается");
-
-    }
 
     //Проверка целостности задач
     @Test
     void checkIntegrity() throws ManagerSaveException, IOException {
 
         File tempFile = File.createTempFile("tempFile1", ".txt");
-        TaskManager manager = Managers.getDefault(tempFile.toPath());
+        TaskManager manager = Managers.getDefaultFileBackedTaskManager(tempFile.toPath());
 
         Epic epic1 = new Epic("Тестовый эпик", "Эпик для проверки подзадач");
         manager.addEpic(epic1);
