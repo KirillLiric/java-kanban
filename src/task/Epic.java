@@ -23,7 +23,7 @@ public class Epic extends Task {
     @Override
     public String toString() {
 
-        if(!(startTime == null || duration == null)) {
+        if (!(startTime == null || duration == null)) {
             return super.id + "," + Tasks.EPIC + "," + super.name + "," + super.status + "," + super.description + ","
                     + startTime + "," + duration.toMinutes();
         } else {
