@@ -72,15 +72,15 @@ public class Task {
     }
 
     public LocalDateTime getEndTime() {
-        return  startTime.plus(duration);
+        return startTime.plus(duration);
     }
 
     public LocalDateTime getStartTime() {
-        return  startTime;
+        return startTime;
     }
 
     public Duration getDuration() {
-        return  duration;
+        return duration;
     }
 
 }

@@ -1,4 +1,5 @@
 package managers;
+
 import task.Task;
 
 public class Node {
