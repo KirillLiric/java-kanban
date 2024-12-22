@@ -15,13 +15,14 @@ public class Epic extends Task {
         super(name, description);
         this.epicSubtaskMap = new HashMap<>();
     }
+
     public HashMap<Integer, Subtask> getEpicSubtaskMap() {
         return epicSubtaskMap;
     }
 
     @Override
     public String toString() {
-        if ( !(startTime == null || duration == null) ) {
+        if(!(startTime == null || duration == null)) {
             return super.id + "," + Tasks.EPIC + "," + super.name + "," + super.status + "," + super.description + ","
                     + startTime + "," + duration.toMinutes();
         } else {
@@ -56,6 +57,7 @@ public class Epic extends Task {
         startTime = getStartTime();
         duration = getDuration();
     }
+
     public void checkStatus() {
 
         if (epicSubtaskMap.isEmpty()) {
