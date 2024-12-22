@@ -24,6 +24,7 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
 
     @Test
     public void overlapTest() {
+        manager.deleteTaskMap();
         Task task1 = new Task("TestTask1", "Description1");
         task1.setStartTime("2024-12-20T12:00:00.000000");
         task1.setDuration("15");
@@ -36,6 +37,7 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
 
         manager.addTask(task1);
         manager.addTask(task2);
+
         assertEquals(1, manager.getPrioritizedTasks().size(), "Добавляет пересекающиеся по времени " +
                 "задачи");
 

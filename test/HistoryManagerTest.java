@@ -21,11 +21,12 @@ public class HistoryManagerTest {
     }
 
     @Test
-    void historyManagerTest() throws ManagerSaveException, IOException {
+    void historyManagerTest() throws ManagerSaveException, IOException{
 
-
-        TaskManager manager = Managers.getDefaultFileBackedTaskManager(tempFile.toPath());
+        tempFile = File.createTempFile("tempFile", ".txt");
         HistoryManager historyManager = Managers.getDefaultHistory();
+        TaskManager manager = Managers.getDefaultFileBackedTaskManager(tempFile.toPath());
+
 
         Task task1 = new Task("Первая задача", "Первая задача");
         task1.setStartTime("2024-12-20T12:50:00.000000");

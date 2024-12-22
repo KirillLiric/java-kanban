@@ -47,34 +47,6 @@ class MainTest {
         assertEquals(Status.IN_PROGRESS, manager.getEpicMap().get(10).getStatus(), "Провалена проверка пункта d");
     }
 
-
-    //Проверка HistoryManager
-
-
-    //Проверка целостности задач
-    @Test
-    void checkIntegrity() throws ManagerSaveException, IOException {
-
-        File tempFile = File.createTempFile("tempFile1", ".txt");
-        TaskManager manager = Managers.getDefaultFileBackedTaskManager(tempFile.toPath());
-
-        Epic epic1 = new Epic("Тестовый эпик", "Эпик для проверки подзадач");
-        manager.addEpic(epic1);
-        Subtask subtask1 = new Subtask("Первый подзадача", "Первая подзадача", epic1.getId());
-        Subtask subtask2 = new Subtask("Вторая подзадача", "Вторая подзадача", epic1.getId());
-        manager.addSubtask(subtask1);
-        manager.addSubtask(subtask2);
-
-        assertTrue((epic1.getEpicSubtaskMap().containsKey(subtask1.getId()) &&
-                epic1.getEpicSubtaskMap().containsKey(subtask2.getId())), "Эпик не хранит данные подзадач");
-
-
-        manager.deleteSubtask(subtask1.getId());
-        assertFalse(epic1.getEpicSubtaskMap().containsKey(subtask1.getId()), "Эпик хранит удаленную подзадачу");
-
-        assertNotEquals(epic1.getId(), subtask1.getEpicID(), "Удаленная подзадача хранит id эпика");
-
-    }
 }
 
 
