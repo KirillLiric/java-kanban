@@ -181,8 +181,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public void updateTask(Task task) {
-        if (!prioritizedList.stream().filter(streamTask -> !streamTask.equals(task)).
-                anyMatch(streamTask -> isOverlap(task, streamTask))) {
+        if (!prioritizedList.stream().filter(streamTask -> !streamTask.equals(task))
+                        .anyMatch(streamTask -> isOverlap(task, streamTask))) {
             prioritizedList.remove(task);
             prioritizedList.add(task);
             super.updateTask(task);
@@ -198,8 +198,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public void updateSubtask(Subtask subtask) {
-        if (!prioritizedList.stream().filter(streamTask -> !streamTask.equals(subtask)).
-                anyMatch(streamTask -> isOverlap(subtask, streamTask))) {
+        if (!prioritizedList.stream().filter(streamTask -> !streamTask.equals(subtask))
+                .anyMatch(streamTask -> isOverlap(subtask, streamTask))) {
             prioritizedList.remove(subtask);
             prioritizedList.add(subtask);
             super.updateSubtask(subtask);
