@@ -7,8 +7,8 @@ import java.util.Optional;
 
 public class Epic extends Task {
 
-    LocalDateTime startTime;
-    Duration duration;
+    protected LocalDateTime startTime;
+    protected Duration duration;
     private HashMap<Integer, Subtask> epicSubtaskMap;
 
     public Epic(String name, String description) {

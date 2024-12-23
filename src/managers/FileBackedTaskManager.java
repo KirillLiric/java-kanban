@@ -34,7 +34,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 writer.write(task.toString() + "\n");
             }
         } catch (IOException e) {
-            throw new ManagerSaveException();
+            throw new ManagerSaveException("Ошибка при сохранении");
         }
     }
 
@@ -98,7 +98,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     } else {
                         idList.add(task.getId());
                         taskMap.put(task.getId(), task);
-
                     }
                 }
             }
@@ -110,7 +109,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             }
             nextId = max + 1;
         } catch (IOException e) {
-            throw new ManagerSaveException();
+            throw new ManagerSaveException("Произошла ошибка при загрузке");
         }
         return manager;
     }
