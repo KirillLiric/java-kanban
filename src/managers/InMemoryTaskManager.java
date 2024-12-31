@@ -10,9 +10,9 @@ import java.util.List;
 
 public class InMemoryTaskManager implements TaskManager {
 
-    static HashMap<Integer, Epic> epicMap = new HashMap<>();
-    static HashMap<Integer, Task> taskMap = new HashMap<>();
-    static HashMap<Integer, Subtask> subtaskMap = new HashMap<>();
+     HashMap<Integer, Epic> epicMap = new HashMap<>();
+     HashMap<Integer, Task> taskMap = new HashMap<>();
+     HashMap<Integer, Subtask> subtaskMap = new HashMap<>();
 
     private final HistoryManager historyManager = Managers.getDefaultHistory();
 
@@ -94,6 +94,7 @@ public class InMemoryTaskManager implements TaskManager {
         subtask.setId(nextId++);
         subtaskMap.put(subtask.getId(), subtask);
         epicMap.get(subtask.getEpicID()).getEpicSubtaskMap().put(subtask.getId(), subtask);
+        epicMap.get(subtask.getEpicID()).checkStatus();
     }
 
     //Обновление
@@ -106,8 +107,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateEpic(Epic epic) {
         epicMap.put(epic.getId(), epic);
-        HashMap<Integer, Subtask> epicSubtaskMap = epic.getEpicSubtaskMap();
-        checkEpicStatus(epic, epicSubtaskMap);
+        epic.checkStatus();
     }
 
     @Override
@@ -116,7 +116,7 @@ public class InMemoryTaskManager implements TaskManager {
         Epic epic = epicMap.get(subtask.getEpicID());
         HashMap<Integer, Subtask> epicSubtaskMap = epic.getEpicSubtaskMap();
         epicSubtaskMap.put(subtask.getId(), subtask);
-        checkEpicStatus(epic, epicSubtaskMap);
+        epic.checkStatus();
     }
 
     //Удаление по id
@@ -145,7 +145,7 @@ public class InMemoryTaskManager implements TaskManager {
         Epic epic = epicMap.get(subtask.getEpicID());
         HashMap<Integer, Subtask> epicSubtaskMap = epic.getEpicSubtaskMap();
         epicSubtaskMap.remove(subtask.getId());
-        checkEpicStatus(epic, epicSubtaskMap);
+        epic.checkStatus();
         subtask.setNullEpicId();
         historyManager.remove(subtask.getId());
         subtaskMap.remove(subtask.getId());
@@ -164,35 +164,6 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public List<Task> getHistory() {
         return historyManager.getHistory();
-    }
-
-
-    //Дополнительные методы
-
-    //Проверка статуса эпика
-
-    public void checkEpicStatus(Epic epic, HashMap<Integer, Subtask> epicSubtaskMap) {
-        epicSubtaskMap = epic.getEpicSubtaskMap();
-        int j = 0;
-        int k = 0;
-        if (epicSubtaskMap.isEmpty()) {
-            epic.setStatus(Status.NEW);
-        } else {
-            for (Integer i : epicSubtaskMap.keySet()) {
-                if (Status.DONE.equals(epicSubtaskMap.get(i).getStatus())) {
-                    j++;
-                } else if (Status.NEW.equals(epicSubtaskMap.get(i).getStatus())) {
-                    k++;
-                }
-            }
-        }
-        if (j == epicSubtaskMap.size()) {
-            epic.setStatus(Status.DONE);
-        } else if (k == epicSubtaskMap.size()) {
-            epic.setStatus(Status.NEW);
-        } else {
-            epic.setStatus(Status.IN_PROGRESS);
-        }
     }
 
 }

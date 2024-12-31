@@ -14,11 +14,11 @@ public interface TaskManager {
 
     HashMap<Integer, Subtask> getSubtaskMap();
 
-    void deleteEpicMap() throws ManagerSaveException;
+    void deleteEpicMap();
 
-    void deleteTaskMap() throws ManagerSaveException;
+    void deleteTaskMap();
 
-    void deleteSubtaskMap() throws ManagerSaveException;
+    void deleteSubtaskMap();
 
     Task getEpicFromMap(int id);
 
@@ -26,23 +26,23 @@ public interface TaskManager {
 
     Task getSubtaskFromMap(int id);
 
-    void addTask(Task task) throws ManagerSaveException;
+    void addTask(Task task);
 
-    void addEpic(Epic epic) throws ManagerSaveException;
+    void addEpic(Epic epic);
 
-    void addSubtask(Subtask subtask) throws ManagerSaveException;
+    void addSubtask(Subtask subtask);
 
-    void updateTask(Task task) throws ManagerSaveException;
+    void updateTask(Task task);
 
-    void updateEpic(Epic epic) throws ManagerSaveException;
+    void updateEpic(Epic epic);
 
-    void updateSubtask(Subtask subtask) throws ManagerSaveException;
+    void updateSubtask(Subtask subtask);
 
-    void deleteTask(int id) throws ManagerSaveException;
+    void deleteTask(int id);
 
-    void deleteEpic(int id) throws ManagerSaveException;
+    void deleteEpic(int id);
 
-    void deleteSubtask(int id) throws ManagerSaveException;
+    void deleteSubtask(int id);
 
     List<Task> getHistory();
 
