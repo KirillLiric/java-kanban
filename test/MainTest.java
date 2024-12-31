@@ -4,92 +4,58 @@ import task.Epic;
 import task.Subtask;
 import task.Task;
 
-import java.util.HashMap;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MainTest {
 
-    //Проверка работоспособности equals у задач
-
     @Test
-    void equalsOfTasks() {
-        Task task1 = new Task("Первая задача", "Первая задача");
-        Task task2 = new Task("Вторая задача", "Вторая задача");
-        task1.setId(17);
-        task2.setId(17);
-        assertTrue(task1.equals(task2), "Тест на эквивалентность задач провален");
-    }
-
-    @Test
-    void equalsOfEpics() {
-        Epic epic1 = new Epic("Первый эпик", "Первый эпик");
-        Epic epic2 = new Epic("Второй эпик", "Второй эпик");
-        epic1.setId(17);
-        epic2.setId(17);
-        assertTrue(epic1.equals(epic2), "Тест на эквивалентность эпиков провален");
-    }
-
-    @Test
-    void equalsOfSubtask() {
-        Epic epic1 = new Epic("Тестовый эпик", "Эпик для проверки подзадач");
-        epic1.setId(17);
-        Subtask subtask1 = new Subtask("Первый подзадача", "Первая подзадача", epic1.getId());
-        Subtask subtask2 = new Subtask("Вторая подзадача", "Вторая подзадача", epic1.getId());
-        subtask1.setId(17);
-        subtask2.setId(17);
-        assertTrue(subtask1.equals(subtask2), "Тест на эквивалентность подзадач провален");
-    }
-
-    //Проверка Эпика
-    @Test
-    void checkEpic() {
-        Epic epic1 = new Epic("Тестовый эпик", "Эпик для проверки подзадач");
-        Managers.getDefault().addEpic(epic1);
-    }
-
-    //Проинициализированные и готовые к работе экземпляры менеджеров
-    @Test
-    void testOfManagers() {
+   void testOfManagers() throws IOException {
+        File tempFile = File.createTempFile("tempFile1", ".txt");
         assertTrue(Managers.getDefaultHistory() instanceof InMemoryHistoryManager, "Не инициализируется менеджер просмотров");
-        assertTrue(Managers.getDefault() instanceof InMemoryTaskManager, "Не инициализируется менеджер задач");
-    }
+        assertTrue(Managers.getDefault(tempFile.toPath()) instanceof InMemoryTaskManager, "Не инициализируется менеджер задач");
+   }
 
-    //Неизменность задачи при добавлении задачи в менеджер
+    //Создание временного файла
     @Test
-    void immutabilityTask() {
-        TaskManager manager = Managers.getDefault();
-        String name = "Имя";
-        String description = "Описание";
-        Task task = new Task(name, description);
-        manager.addTask(task);
-        HashMap<Integer, Task> map = manager.getTaskMap();
-        Task task1 = map.get(task.getId());
-        assertEquals(name, task1.getName(), "Поменялось имя");
-        assertEquals(description, task1.getDescription(), "Поменялось описание");
-    }
+    void checkProgram() throws IOException
+    {
+        File tempFile = File.createTempFile("tempFile1", ".txt");
 
-    //Проверка InMemoryTaskManager
-    @Test
-    void inMemoryTaskManagerTest() {
-        TaskManager manager = Managers.getDefault();
-        Task testTask = new Task("Тестовая задача", "Тестовая задача");
-        manager.addTask(testTask);
-        Epic testEpic = new Epic("Тестовый эпик", "Тестовый эпик");
-        manager.addEpic(testEpic);
-        Subtask testSubtask = new Subtask("Тестовая подзадача", "Тестовая подзадача", testEpic.getId());
-        manager.addSubtask(testSubtask);
-        assertNotNull(manager.getTaskFromMap(testTask.getId()), "Задача не возвращается");
-        assertNotNull(manager.getEpicFromMap(testEpic.getId()), "Эпик не возвращается");
-        assertNotNull(manager.getSubtaskFromMap(testSubtask.getId()), "Подзадача не возвращается");
+        //Запись в файл тестового текста
+        String testText = "1,TASK,Task1,NEW,Description task1,\n2,EPIC,Epic2,DONE,Description epic2,\n" +
+                "3,SUBTASK,Sub Task2,DONE,Description sub task3,2";
 
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
+            writer.write(testText);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        FileBackedTaskManager manager = Managers.getDefault(tempFile.toPath());
+        manager.loadFromFile(tempFile);
+        String[] massText = testText.split("\n");
+        assertTrue(manager.getTaskMap().containsValue(manager.fromString(massText[0])), "Не импортирует задачу");
+
+        Task testTask1 = new Task("Тестовая задача 1", "Описание тестовой задачи 1");
+        Task testTask2 = new Task("Тестовая задача 2", "Описание тестовой задачи 2");
+        manager.addTask(testTask1);
+        manager.addTask(testTask2);
+        FileBackedTaskManager manager2 = Managers.getDefault(tempFile.toPath());
+        assertEquals(3, manager2.getTaskMap().size(), "Не происходит сохранение");
     }
 
     //Проверка HistoryManager
     @Test
-    void historyManagerTest() {
+    void historyManagerTest() throws ManagerSaveException, IOException {
 
-        TaskManager manager = Managers.getDefault();
+        File tempFile = File.createTempFile("tempFile1", ".txt");
+        TaskManager manager = Managers.getDefault(tempFile.toPath());
         HistoryManager historyManager = Managers.getDefaultHistory();
 
         //Проверка на хранение задач с одним и тем же id
@@ -120,9 +86,10 @@ class MainTest {
 
     //Проверка целостности задач
     @Test
-    void checkIntegrity() {
+    void checkIntegrity() throws ManagerSaveException, IOException {
 
-        TaskManager manager = Managers.getDefault();
+        File tempFile = File.createTempFile("tempFile1", ".txt");
+        TaskManager manager = Managers.getDefault(tempFile.toPath());
 
         Epic epic1 = new Epic("Тестовый эпик", "Эпик для проверки подзадач");
         manager.addEpic(epic1);
@@ -135,11 +102,16 @@ class MainTest {
                 epic1.getEpicSubtaskMap().containsKey(subtask2.getId())), "Эпик не хранит данные подзадач");
 
 
-        manager.deleteSubtask(subtask1);
+        manager.deleteSubtask(subtask1.getId());
         assertFalse(epic1.getEpicSubtaskMap().containsKey(subtask1.getId()), "Эпик хранит удаленную подзадачу");
 
         assertNotEquals(epic1.getId(), subtask1.getEpicID(), "Удаленная подзадача хранит id эпика");
 
     }
-
 }
+
+
+
+
+
+

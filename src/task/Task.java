@@ -2,10 +2,10 @@ package task;
 
 public class Task {
 
-    private String name;
-    private String description;
-    private int id;
-    private Status status;
+    String name;
+    String description;
+    Integer id;
+    Status status;
 
     public Task(String name, String description) {
         this.name = name;
@@ -50,6 +50,11 @@ public class Task {
     @Override
     public int hashCode() {
         return id * 17;
+    }
+
+    @Override
+    public String toString() {
+        return id + "," + Tasks.TASK + "," + name + "," + status + "," + description;
     }
 
 }
