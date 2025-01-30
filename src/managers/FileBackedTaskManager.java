@@ -156,6 +156,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             super.addTask(task);
             prioritizedList.add(task);
             save();
+        } else {
+            throw new ManagerSaveException("Пересечение по времени");
         }
     }
 
@@ -172,6 +174,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             prioritizedList.add(subtask);
             epicMap.get(subtask.getEpicID()).checkTime();
             save();
+        } else {
+            throw new ManagerSaveException("Пересечение по времени");
         }
 
     }
@@ -186,6 +190,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             prioritizedList.add(task);
             super.updateTask(task);
             save();
+        } else {
+            throw new ManagerSaveException("Пересечение по времени");
         }
     }
 
@@ -203,6 +209,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             prioritizedList.add(subtask);
             super.updateSubtask(subtask);
             save();
+        } else {
+            throw new ManagerSaveException("Пересечение по времени");
         }
     }
 
