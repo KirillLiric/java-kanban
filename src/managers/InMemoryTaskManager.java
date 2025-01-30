@@ -7,6 +7,7 @@ import task.Task;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 public class InMemoryTaskManager implements TaskManager {
 
@@ -58,20 +59,32 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Task getEpicFromMap(int id) {
-        historyManager.add(epicMap.get(id));
-        return epicMap.get(id);
+        try {
+            historyManager.add(epicMap.get(id));
+            return epicMap.get(id);
+        } catch (NoSuchElementException e) {
+            throw new RuntimeException("Нет эпика с таким id");
+        }
     }
 
     @Override
     public Task getTaskFromMap(int id) {
-        historyManager.add(taskMap.get(id));
-        return taskMap.get(id);
+        try {
+            historyManager.add(taskMap.get(id));
+            return taskMap.get(id);
+        } catch (NoSuchElementException e) {
+            throw new RuntimeException("Нет задачи с таким id");
+        }
     }
 
     @Override
     public Task getSubtaskFromMap(int id) {
-        historyManager.add(subtaskMap.get(id));
-        return subtaskMap.get(id);
+        try {
+            historyManager.add(subtaskMap.get(id));
+            return subtaskMap.get(id);
+        } catch (NoSuchElementException e) {
+            throw new RuntimeException("Нет подзадачи с таким id");
+        }
     }
 
     //Создание

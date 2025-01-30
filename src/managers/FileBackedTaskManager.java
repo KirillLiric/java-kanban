@@ -157,7 +157,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             prioritizedList.add(task);
             save();
         } else {
-            throw new ManagerSaveException("Пересечение по времени");
+            //throw new ManagerSaveException("Пересечение по времени");
         }
     }
 
