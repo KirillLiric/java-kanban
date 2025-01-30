@@ -1,16 +1,23 @@
-import com.google.gson.Gson;
+import com.google.gson.*;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import managers.*;
 import task.Epic;
+import task.Status;
+import task.Task;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.lang.reflect.Type;
+import java.time.format.DateTimeFormatter;
 
 public class HttpTaskServer {
 
@@ -24,17 +31,20 @@ public class HttpTaskServer {
         this.fileBackedTaskManager = fileBackedTaskManager;
 
         try {
-            server = HttpServer.create(new InetSocketAddress(8800), 0);
+            server = HttpServer.create(new InetSocketAddress(8080), 0);
             server.createContext("/tasks", new TasksHandler());
             server.createContext("/subtasks", new SubtasksHandler());
             server.createContext("/epics", new EpicsHandler());
             server.createContext("/history", new HistoryHandler());
             server.createContext("/prioritized", new PrioritizedHandler());
+            server.createContext("/hello", new HelloHandler());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
     }
+
+
 
     public class BaseHttpHandler {
 
@@ -58,6 +68,21 @@ public class HttpTaskServer {
         }
     }
 
+    class HelloHandler extends BaseHttpHandler implements HttpHandler{
+        @Override
+        public void handle(HttpExchange httpExchange) throws IOException {
+            System.out.println("Началась обработка /hello запроса от клиента.");
+
+            String response = "Kir! Glad to see you on our server.";
+            httpExchange.sendResponseHeaders(200, 0);
+
+            try (OutputStream os = httpExchange.getResponseBody()) {
+                os.write(response.getBytes());
+            }
+        }
+    }
+
+
     // Обработчик для /tasks
     class TasksHandler extends BaseHttpHandler implements HttpHandler {
         @Override
@@ -65,6 +90,7 @@ public class HttpTaskServer {
             URI requestURI = exchange.getRequestURI();
             String path = requestURI.toString();
             String method = exchange.getRequestMethod();
+            System.out.println(path.split("/")[2]);
             int option;
             String response = "";
 
@@ -95,7 +121,14 @@ public class HttpTaskServer {
                     String stringTask = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
                     try {
                         if (option == -1) {
-                            fileBackedTaskManager.addTask(FileBackedTaskManager.fromString(stringTask));
+                            try {
+                                InputStreamReader isr = new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8);
+                                 Task newTask = gson.fromJson(isr, Task.class);
+                                fileBackedTaskManager.addTask(newTask);
+                                sendText(exchange, gson.toJson(newTask), 201); // 201 Created
+                            } catch (RuntimeException e) {
+                                sendText(exchange, "{Ошибка: Не удалось создать задачу.}", 400); // Bad Request
+                            }
                         } else {
                             fileBackedTaskManager.updateTask(FileBackedTaskManager.fromString(stringTask));
                         }
@@ -279,13 +312,36 @@ public class HttpTaskServer {
 
     public static void main(String[] args) throws IOException {
 
+        class LocalDateTimeAdapter implements JsonSerializer<LocalDateTime> {
+            @Override
+            public JsonElement serialize(LocalDateTime src, Type typeOfSrc, JsonSerializationContext context) {
+                return context.serialize(src.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            }
+        }
+
+        class DurationAdapter implements JsonSerializer<Duration> {
+            @Override
+            public JsonElement serialize(Duration src, Type typeOfSrc, JsonSerializationContext context) {
+                return context.serialize(src.toMinutes());
+            }
+        }
+
         File file = File.createTempFile("tempFile", ".txt");
         TaskManager inMemoryTaskManager = Managers.getDefault();
         TaskManager fileBackedTaskManager = Managers.getDefaultFileBackedTaskManager(file.toPath());
         HttpTaskServer httpTaskServer = new HttpTaskServer((InMemoryTaskManager) inMemoryTaskManager,
                 (FileBackedTaskManager) fileBackedTaskManager);
+
+        Task task = new Task("Test 2", "Testing task 2",
+                Status.NEW, Duration.ofMinutes(5), LocalDateTime.now());
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .registerTypeAdapter(Duration.class, new DurationAdapter())
+                .create();
+        String taskJson = gson.toJson(task);
+        System.out.println(taskJson);
+
         httpTaskServer.server.start();
-
-
+        System.out.println("Сервер запущен на 8080 порту");
     }
 }
