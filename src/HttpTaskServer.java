@@ -198,7 +198,7 @@ public class HttpTaskServer {
                         if (option == -1) {
                             response = gson.toJson(fileBackedTaskManager.getEpicMap());
                         } else {
-                            if(path.split("/").length >= 3) {
+                            if(path.split("/").length >= 3 && path.split("/")[3].equals("subtasks")) {
                                 Epic epic = (Epic) fileBackedTaskManager.getEpicFromMap(option);
                                 response = gson.toJson(epic.getEpicSubtaskMap());
                             } else {
