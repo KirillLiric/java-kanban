@@ -18,17 +18,29 @@ import java.time.format.DateTimeFormatter;
 
 public class HttpTaskServer {
 
-    class LocalDateTimeAdapter implements JsonSerializer<LocalDateTime> {
+    class LocalDateTimeAdapter implements JsonSerializer<LocalDateTime>, JsonDeserializer<LocalDateTime> {
+        private final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
         @Override
-        public JsonElement serialize(LocalDateTime src, Type typeOfSrc, JsonSerializationContext context) {
-            return context.serialize(src.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        public JsonElement serialize(LocalDateTime localDateTime, Type typeOfSrc, JsonSerializationContext context) {
+            return new JsonPrimitive(localDateTime.format(formatter));
+        }
+
+        @Override
+        public LocalDateTime deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            return LocalDateTime.parse(json.getAsString(), formatter);
         }
     }
 
-    class DurationAdapter implements JsonSerializer<Duration> {
+    class DurationAdapter implements JsonSerializer<Duration>, JsonDeserializer<Duration> {
         @Override
-        public JsonElement serialize(Duration src, Type typeOfSrc, JsonSerializationContext context) {
-            return context.serialize(src.toMinutes());
+        public JsonElement serialize(Duration duration, Type typeOfSrc, JsonSerializationContext context) {
+            return new JsonPrimitive(duration.getSeconds());
+        }
+
+        @Override
+        public Duration deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            return Duration.ofSeconds(json.getAsLong());
         }
     }
 
@@ -47,7 +59,6 @@ public class HttpTaskServer {
 
         try {
             server = HttpServer.create(new InetSocketAddress(8080), 0);
-            server.createContext("/hello", new HelloHandler());
             server.createContext("/tasks", new TasksHandler());
             server.createContext("/subtasks", new SubtasksHandler());
             server.createContext("/epics", new EpicsHandler());
@@ -97,20 +108,60 @@ public class HttpTaskServer {
         public void handle(HttpExchange exchange) throws IOException {
             System.out.println("Началась обработка /tasks запроса от клиента.");
             String method = exchange.getRequestMethod();
+            URI requestURI = exchange.getRequestURI();
+            String path = requestURI.toString();
+            String[] arrayPath = path.split("/");
+            String response;
 
             switch(method) {
+
+                case "GET":
+                    System.out.println("/GET");
+                    if (arrayPath.length == 2) {
+                        response = gson.toJson(fileBackedTaskManager.getTaskMap());
+                        sendText(exchange, response, 200);
+                    } else if (arrayPath.length == 3) {
+                        String value = arrayPath[2].substring(1, arrayPath[2].length() - 1);
+                        try {
+                            response = gson.toJson(fileBackedTaskManager.getTaskFromMap(Integer.parseInt(value)));
+                            sendText(exchange, response, 200);
+                        } catch (Exception e) {
+                            sendNotFound(exchange, value);
+                        }
+                    }
+
                 case "POST":
                     System.out.println("/POST");
                     String requestBody = readRequestBody(exchange);
-                    System.out.println(requestBody);
                     Task task = gson.fromJson(requestBody, Task.class);
-                    System.out.println(task.getName());
-                    if (task != null && task.getName() != null) {
-                        sendText(exchange, "{name: " + task.getName() + "}", 200);
+                    int taskId;
+                    try {
+                        taskId = task.getId();
+                    } catch (Exception e) {
+                        taskId = -1;
+                    }
+                    if (taskId == -1) {
+                        try {
+                            fileBackedTaskManager.addTask(task);
+                            sendText(exchange, "", 201);
+                        } catch (RuntimeException e) {
+                            sendHasInteractions(exchange, task.getName());
+                        }
                     } else {
-                        sendNotFound(exchange, "Задача");
+                        try {
+                            fileBackedTaskManager.updateTask(task);
+                            sendText(exchange, "", 201);
+                        } catch (RuntimeException e) {
+                            sendHasInteractions(exchange, task.getName());
+                        }
                     }
                     break;
+
+                case "DELETE":
+                    System.out.println("/DELETE");
+                    String value = arrayPath[2].substring(1, arrayPath[2].length() - 1);
+                    fileBackedTaskManager.deleteTask(Integer.parseInt(value));
+                    sendText(exchange, "", 200);
 
                 default:
                     sendText(exchange, "{error: Метод не поддерживается.}", 405);
@@ -118,71 +169,6 @@ public class HttpTaskServer {
             }
         }
     }
-
-    class HelloHandler extends BaseHttpHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            System.out.println("Началась обработка /hello запроса от клиента.");
-            String response = "Kir";
-            sendText(exchange, response, 200);
-        }
-    }
-    /*class TasksHandler extends BaseHttpHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            URI requestURI = exchange.getRequestURI();
-            String path = requestURI.toString();
-            String method = exchange.getRequestMethod();
-            int option;
-            String response = "";
-
-            try {
-                String stringOption = path.split("/")[2];
-                String value = stringOption.substring(1, stringOption.length()-1);
-                option = Integer.parseInt(value);
-            } catch (ArrayIndexOutOfBoundsException e) {
-                option = -1;
-            }
-
-            switch (method) {
-                case "GET":
-                    try {
-                        if (option == -1) {
-                            response = gson.toJson(fileBackedTaskManager.getTaskMap());
-                        } else {
-                            response = gson.toJson(fileBackedTaskManager.getTaskFromMap(option));
-                        }
-                        sendText(exchange, response, 200);
-
-                    } catch (RuntimeException e) {
-                        sendNotFound(exchange, "Task");
-                    }
-                    break;
-
-                case "POST":
-                    String stringTask = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-                    try {
-                        if (option == -1) {
-                            fileBackedTaskManager.addTask(FileBackedTaskManager.fromString(stringTask));
-                        } else {
-                            fileBackedTaskManager.updateTask(FileBackedTaskManager.fromString(stringTask));
-                        }
-                        sendText(exchange, "{message: Task processed successfully.}", 200);
-                    } catch (RuntimeException e) {
-                        sendHasInteractions(exchange, "Task");
-                    }
-                    break;
-
-                case "DELETE":
-                    fileBackedTaskManager.deleteTask(option);
-                    sendText(exchange, "{message: Task deleted successfully.}", 200);
-                    break;
-                default:
-                    sendText(exchange, "{error: Method not allowed.}", 405);
-                    break;
-            }
-        }
-    }*/
 
     // Обработчик для /subtasks
     class SubtasksHandler extends BaseHttpHandler implements HttpHandler {
@@ -347,47 +333,47 @@ public class HttpTaskServer {
 
     public static void main(String[] args) throws IOException {
 
-        class LocalDateTimeAdapter implements JsonSerializer<LocalDateTime>, JsonDeserializer<LocalDateTime> {
-            private final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-
-            @Override
-            public JsonElement serialize(LocalDateTime localDateTime, Type typeOfSrc, JsonSerializationContext context) {
-                return new JsonPrimitive(localDateTime.format(formatter));
-            }
-
-            @Override
-            public LocalDateTime deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-                return LocalDateTime.parse(json.getAsString(), formatter);
-            }
-        }
-
-        class DurationAdapter implements JsonSerializer<Duration>, JsonDeserializer<Duration> {
-            @Override
-            public JsonElement serialize(Duration duration, Type typeOfSrc, JsonSerializationContext context) {
-                return new JsonPrimitive(duration.getSeconds());
-            }
-
-            @Override
-            public Duration deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-                return Duration.ofSeconds(json.getAsLong());
-            }
-        }
-
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-                .registerTypeAdapter(Duration.class, new DurationAdapter())
-                .create();
-
-        Task task = new Task("Test 2", "Testing task 2",
-                Status.NEW, Duration.ofMinutes(5), LocalDateTime.now());
-
-        gson.toJson(task);
-        System.out.println(gson.toJson(task));
-
-        Task testTask = gson.fromJson(gson.toJson(task), Task.class);
-
-        System.out.println(testTask.getName());
-        System.out.println(testTask.getStartTime());
+//        class LocalDateTimeAdapter implements JsonSerializer<LocalDateTime>, JsonDeserializer<LocalDateTime> {
+//            private final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+//
+//            @Override
+//            public JsonElement serialize(LocalDateTime localDateTime, Type typeOfSrc, JsonSerializationContext context) {
+//                return new JsonPrimitive(localDateTime.format(formatter));
+//            }
+//
+//            @Override
+//            public LocalDateTime deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+//                return LocalDateTime.parse(json.getAsString(), formatter);
+//            }
+//        }
+//
+//        class DurationAdapter implements JsonSerializer<Duration>, JsonDeserializer<Duration> {
+//            @Override
+//            public JsonElement serialize(Duration duration, Type typeOfSrc, JsonSerializationContext context) {
+//                return new JsonPrimitive(duration.getSeconds());
+//            }
+//
+//            @Override
+//            public Duration deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+//                return Duration.ofSeconds(json.getAsLong());
+//            }
+//        }
+//
+//        Gson gson = new GsonBuilder()
+//                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+//                .registerTypeAdapter(Duration.class, new DurationAdapter())
+//                .create();
+//
+//        Task task = new Task("Test 2", "Testing task 2",
+//                Status.NEW, Duration.ofMinutes(5), LocalDateTime.now());
+//
+//        gson.toJson(task);
+//        System.out.println(gson.toJson(task));
+//
+//        Task testTask = gson.fromJson(gson.toJson(task), Task.class);
+//
+//        System.out.println(testTask.getName());
+//        System.out.println(testTask.getStartTime());
 
         File file = File.createTempFile("tempFile", ".txt");
         TaskManager inMemoryTaskManager = Managers.getDefault();
