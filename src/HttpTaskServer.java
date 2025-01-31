@@ -347,17 +347,29 @@ public class HttpTaskServer {
 
     public static void main(String[] args) throws IOException {
 
-        class LocalDateTimeAdapter implements JsonSerializer<LocalDateTime> {
+        class LocalDateTimeAdapter implements JsonSerializer<LocalDateTime>, JsonDeserializer<LocalDateTime> {
+            private final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
             @Override
-            public JsonElement serialize(LocalDateTime src, Type typeOfSrc, JsonSerializationContext context) {
-                return context.serialize(src.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            public JsonElement serialize(LocalDateTime localDateTime, Type typeOfSrc, JsonSerializationContext context) {
+                return new JsonPrimitive(localDateTime.format(formatter));
+            }
+
+            @Override
+            public LocalDateTime deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+                return LocalDateTime.parse(json.getAsString(), formatter);
             }
         }
 
-        class DurationAdapter implements JsonSerializer<Duration> {
+        class DurationAdapter implements JsonSerializer<Duration>, JsonDeserializer<Duration> {
             @Override
-            public JsonElement serialize(Duration src, Type typeOfSrc, JsonSerializationContext context) {
-                return context.serialize(src.toMinutes());
+            public JsonElement serialize(Duration duration, Type typeOfSrc, JsonSerializationContext context) {
+                return new JsonPrimitive(duration.getSeconds());
+            }
+
+            @Override
+            public Duration deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+                return Duration.ofSeconds(json.getAsLong());
             }
         }
 
@@ -371,6 +383,11 @@ public class HttpTaskServer {
 
         gson.toJson(task);
         System.out.println(gson.toJson(task));
+
+        Task testTask = gson.fromJson(gson.toJson(task), Task.class);
+
+        System.out.println(testTask.getName());
+        System.out.println(testTask.getStartTime());
 
         File file = File.createTempFile("tempFile", ".txt");
         TaskManager inMemoryTaskManager = Managers.getDefault();
