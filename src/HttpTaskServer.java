@@ -1,20 +1,42 @@
-import com.google.gson.Gson;
+import com.google.gson.*;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import managers.*;
 import task.Epic;
+import task.Status;
+import task.Task;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.lang.reflect.Type;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class HttpTaskServer {
 
-    private static final Gson gson = new Gson();
+    class LocalDateTimeAdapter implements JsonSerializer<LocalDateTime> {
+        @Override
+        public JsonElement serialize(LocalDateTime src, Type typeOfSrc, JsonSerializationContext context) {
+            return context.serialize(src.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        }
+    }
+
+    class DurationAdapter implements JsonSerializer<Duration> {
+        @Override
+        public JsonElement serialize(Duration src, Type typeOfSrc, JsonSerializationContext context) {
+            return context.serialize(src.toMinutes());
+        }
+    }
+
+    Gson gson = new GsonBuilder()
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+            .registerTypeAdapter(Duration.class, new DurationAdapter())
+            .create();
+
     private final InMemoryTaskManager inMemoryTaskManager;
     private final FileBackedTaskManager fileBackedTaskManager;
     HttpServer server;
@@ -24,7 +46,8 @@ public class HttpTaskServer {
         this.fileBackedTaskManager = fileBackedTaskManager;
 
         try {
-            server = HttpServer.create(new InetSocketAddress(8800), 0);
+            server = HttpServer.create(new InetSocketAddress(8080), 0);
+            server.createContext("/hello", new HelloHandler());
             server.createContext("/tasks", new TasksHandler());
             server.createContext("/subtasks", new SubtasksHandler());
             server.createContext("/epics", new EpicsHandler());
@@ -37,6 +60,16 @@ public class HttpTaskServer {
     }
 
     public class BaseHttpHandler {
+
+        protected String readRequestBody(HttpExchange exchange) throws IOException {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8));
+            StringBuilder requestBodyBuilder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                requestBodyBuilder.append(line);
+            }
+            return requestBodyBuilder.toString();
+        }
 
         protected void sendText(HttpExchange exchange, String text, int statusCode) throws IOException {
             byte[] responseBytes = text.getBytes(StandardCharsets.UTF_8);
@@ -60,6 +93,41 @@ public class HttpTaskServer {
 
     // Обработчик для /tasks
     class TasksHandler extends BaseHttpHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            System.out.println("Началась обработка /tasks запроса от клиента.");
+            String method = exchange.getRequestMethod();
+
+            switch(method) {
+                case "POST":
+                    System.out.println("/POST");
+                    String requestBody = readRequestBody(exchange);
+                    System.out.println(requestBody);
+                    Task task = gson.fromJson(requestBody, Task.class);
+                    System.out.println(task.getName());
+                    if (task != null && task.getName() != null) {
+                        sendText(exchange, "{name: " + task.getName() + "}", 200);
+                    } else {
+                        sendNotFound(exchange, "Задача");
+                    }
+                    break;
+
+                default:
+                    sendText(exchange, "{error: Метод не поддерживается.}", 405);
+                    break;
+            }
+        }
+    }
+
+    class HelloHandler extends BaseHttpHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            System.out.println("Началась обработка /hello запроса от клиента.");
+            String response = "Kir";
+            sendText(exchange, response, 200);
+        }
+    }
+    /*class TasksHandler extends BaseHttpHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             URI requestURI = exchange.getRequestURI();
@@ -114,7 +182,7 @@ public class HttpTaskServer {
                     break;
             }
         }
-    }
+    }*/
 
     // Обработчик для /subtasks
     class SubtasksHandler extends BaseHttpHandler implements HttpHandler {
@@ -278,6 +346,31 @@ public class HttpTaskServer {
     }
 
     public static void main(String[] args) throws IOException {
+
+        class LocalDateTimeAdapter implements JsonSerializer<LocalDateTime> {
+            @Override
+            public JsonElement serialize(LocalDateTime src, Type typeOfSrc, JsonSerializationContext context) {
+                return context.serialize(src.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            }
+        }
+
+        class DurationAdapter implements JsonSerializer<Duration> {
+            @Override
+            public JsonElement serialize(Duration src, Type typeOfSrc, JsonSerializationContext context) {
+                return context.serialize(src.toMinutes());
+            }
+        }
+
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .registerTypeAdapter(Duration.class, new DurationAdapter())
+                .create();
+
+        Task task = new Task("Test 2", "Testing task 2",
+                Status.NEW, Duration.ofMinutes(5), LocalDateTime.now());
+
+        gson.toJson(task);
+        System.out.println(gson.toJson(task));
 
         File file = File.createTempFile("tempFile", ".txt");
         TaskManager inMemoryTaskManager = Managers.getDefault();

@@ -61,5 +61,7 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="google.code.gson" level="project" />
+    <orderEntry type="library" name="eduworks.json.ld" level="project" />
+    <orderEntry type="library" name="eduworks.json.ld1" level="project" />
   </component>
 </module>

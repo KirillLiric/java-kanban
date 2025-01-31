@@ -18,6 +18,14 @@ public class Task {
         this.status = Status.NEW;
     }
 
+    public Task(String name, String description, Status status, Duration duration, LocalDateTime time) {
+        this.name = name;
+        this.description = description;
+        this.status = status;
+        this.duration = duration;
+        this.startTime = time;
+    }
+
     public String getName() {
         return name;
     }
