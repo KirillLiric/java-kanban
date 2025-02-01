@@ -136,7 +136,6 @@ public class HttpTaskServer {
                         }
                     }
                     break;
-
                 case "POST":
                     System.out.println("/POST");
                     String requestBody = readRequestBody(exchange);
@@ -163,14 +162,12 @@ public class HttpTaskServer {
                         }
                     }
                     break;
-
                 case "DELETE":
                     System.out.println("/DELETE");
                     String value = arrayPath[2];
                     fileBackedTaskManager.deleteTask(Integer.parseInt(value));
                     sendText(exchange, "", 200);
                     break;
-
                 default:
                     sendText(exchange, "{error: Метод не поддерживается.}", 405);
                     break;
