@@ -209,7 +209,7 @@ public class HttpTaskServerTest {
 
         List<Task> updateListTask =  List.copyOf(fileBackedTaskManager.getTaskMap().values());
         assertEquals(1, updateListTask.size(), "Сохраняет обе задачи");
-        assertEquals("Update task", updateListTask.get(id).getDescription());
+        assertEquals("Update task", updateListTask.get(0).getDescription());
 
     }
 
