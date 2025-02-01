@@ -120,7 +120,7 @@ public class HttpTaskServer {
             String path = requestURI.toString();
             String[] arrayPath = path.split("/");
             String response;
-            switch(method) {
+            switch(method){
                 case "GET":
                     System.out.println("/GET");
                     if (arrayPath.length == 2) {
@@ -185,14 +185,14 @@ public class HttpTaskServer {
             String path = requestURI.toString();
             String[] arrayPath = path.split("/");
             String response;
-            switch(method) {
+            switch(method){
                 case "GET":
                     System.out.println("/GET");
                     if (arrayPath.length == 2) {
                         response = gson.toJson(fileBackedTaskManager.getSubtaskMap());
                         sendText(exchange, response, 200);
                     } else if (arrayPath.length == 3) {
-                        String value = arrayPath[2].substring(3, arrayPath[2].length() - 3);
+                        String value = arrayPath[2];
                         try {
                             response = gson.toJson(fileBackedTaskManager.getSubtaskFromMap(Integer.parseInt(value)));
                             sendText(exchange, response, 200);
@@ -231,7 +231,7 @@ public class HttpTaskServer {
 
                 case "DELETE":
                     System.out.println("/DELETE");
-                    String value = arrayPath[2].substring(3, arrayPath[2].length() - 3);
+                    String value = arrayPath[2];
                     fileBackedTaskManager.deleteSubtask(Integer.parseInt(value));
                     sendText(exchange, "", 200);
                     break;
@@ -253,7 +253,7 @@ public class HttpTaskServer {
             String path = requestURI.toString();
             String[] arrayPath = path.split("/");
             String response;
-            switch(method) {
+            switch(method){
                 case "GET":
                     System.out.println("/GET");
                     if (arrayPath.length == 2) {
