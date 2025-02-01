@@ -5,6 +5,7 @@ import com.sun.net.httpserver.HttpServer;
 import managers.*;
 import task.Epic;
 import task.Status;
+import task.Subtask;
 import task.Task;
 
 import java.io.*;
@@ -174,55 +175,65 @@ public class HttpTaskServer {
     class SubtasksHandler extends BaseHttpHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            System.out.println("Началась обработка /subtasks запроса от клиента.");
+            String method = exchange.getRequestMethod();
             URI requestURI = exchange.getRequestURI();
             String path = requestURI.toString();
-            String method = exchange.getRequestMethod();
-            int option;
-            String response = "";
+            String[] arrayPath = path.split("/");
+            String response;
 
-            try {
-                String stringOption = path.split("/")[2];
-                String value = stringOption.substring(1, stringOption.length()-1);
-                option = Integer.parseInt(value);
-            } catch (ArrayIndexOutOfBoundsException e) {
-                option = -1;
-            }
+            switch(method) {
 
-            switch (method) {
                 case "GET":
-                    try {
-                        if (option == -1) {
-                            response = gson.toJson(fileBackedTaskManager.getTaskMap());
-                        } else {
-                            response = gson.toJson(fileBackedTaskManager.getTaskFromMap(option));
-                        }
+                    System.out.println("/GET");
+                    if (arrayPath.length == 2) {
+                        response = gson.toJson(fileBackedTaskManager.getSubtaskMap());
                         sendText(exchange, response, 200);
-                    } catch (RuntimeException e) {
-                        sendNotFound(exchange, "Subtask");
+                    } else if (arrayPath.length == 3) {
+                        String value = arrayPath[2].substring(1, arrayPath[2].length() - 1);
+                        try {
+                            response = gson.toJson(fileBackedTaskManager.getSubtaskFromMap(Integer.parseInt(value)));
+                            sendText(exchange, response, 200);
+                        } catch (Exception e) {
+                            sendNotFound(exchange, value);
+                        }
                     }
-                    break;
 
                 case "POST":
-                    String stringTask = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+                    System.out.println("/POST");
+                    String requestBody = readRequestBody(exchange);
+                    Subtask task = gson.fromJson(requestBody, Subtask.class);
+                    int taskId;
                     try {
-                        if (option == -1) {
-                            fileBackedTaskManager.addTask(FileBackedTaskManager.fromString(stringTask));
-                        } else {
-                            fileBackedTaskManager.updateTask(FileBackedTaskManager.fromString(stringTask));
+                        taskId = task.getId();
+                    } catch (Exception e) {
+                        taskId = -1;
+                    }
+                    if (taskId == -1) {
+                        try {
+                            fileBackedTaskManager.addSubtask(task);
+                            sendText(exchange, "", 201);
+                        } catch (RuntimeException e) {
+                            sendHasInteractions(exchange, task.getName());
                         }
-                        sendText(exchange, "{message: Subtask processed successfully.}", 200);
-                    } catch (ManagerSaveException e) {
-                        sendHasInteractions(exchange, "Subtask");
+                    } else {
+                        try {
+                            fileBackedTaskManager.updateSubtask(task);
+                            sendText(exchange, "", 201);
+                        } catch (RuntimeException e) {
+                            sendHasInteractions(exchange, task.getName());
+                        }
                     }
                     break;
 
                 case "DELETE":
-                    fileBackedTaskManager.deleteTask(option);
-                    sendText(exchange, "{message: Subtask deleted successfully.}", 200);
-                    break;
+                    System.out.println("/DELETE");
+                    String value = arrayPath[2].substring(1, arrayPath[2].length() - 1);
+                    fileBackedTaskManager.deleteSubtask(Integer.parseInt(value));
+                    sendText(exchange, "", 200);
 
                 default:
-                    sendText(exchange, "{error: Method not allowed.}", 405);
+                    sendText(exchange, "{error: Метод не поддерживается.}", 405);
                     break;
             }
         }
@@ -232,60 +243,55 @@ public class HttpTaskServer {
     class EpicsHandler extends BaseHttpHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            System.out.println("Началась обработка /epics запроса от клиента.");
+            String method = exchange.getRequestMethod();
             URI requestURI = exchange.getRequestURI();
             String path = requestURI.toString();
-            String method = exchange.getRequestMethod();
-            int option;
-            String response = "";
+            String[] arrayPath = path.split("/");
+            String response;
 
-            try {
-                String stringOption = path.split("/")[2];
-                String value = stringOption.substring(1, stringOption.length()-1);
-                option = Integer.parseInt(value);
-            } catch (ArrayIndexOutOfBoundsException e) {
-                option = -1;
-            }
+            switch(method) {
 
-            switch (method) {
                 case "GET":
-                    try {
-                        if (option == -1) {
-                            response = gson.toJson(fileBackedTaskManager.getEpicMap());
-                        } else {
-                            if(path.split("/").length >= 3 && path.split("/")[3].equals("subtasks")) {
-                                Epic epic = (Epic) fileBackedTaskManager.getEpicFromMap(option);
-                                response = gson.toJson(epic.getEpicSubtaskMap());
-                            } else {
-                                response = gson.toJson(fileBackedTaskManager.getEpicFromMap(option));
-                            }
-                        }
+                    System.out.println("/GET");
+                    if (arrayPath.length == 2) {
+                        response = gson.toJson(fileBackedTaskManager.getEpicMap());
                         sendText(exchange, response, 200);
-                    } catch (RuntimeException e) {
-                        sendNotFound(exchange, "Epic");
+                    } else if (arrayPath.length == 3) {
+                        String value = arrayPath[2].substring(1, arrayPath[2].length() - 1);
+                        try {
+                            response = gson.toJson(fileBackedTaskManager.getEpicFromMap(Integer.parseInt(value)));
+                            sendText(exchange, response, 200);
+                        } catch (Exception e) {
+                            sendNotFound(exchange, value);
+                        }
+                    } else if ((arrayPath.length == 4) && (arrayPath[3].equals("subtasks"))) {
+                        String value = arrayPath[2].substring(1, arrayPath[2].length() - 1);
+                        try {
+                            Epic epic = (Epic) fileBackedTaskManager.getEpicFromMap(Integer.parseInt(value));
+                            response = gson.toJson(epic.getEpicSubtaskMap());
+                            sendText(exchange, response, 200);
+                        } catch (Exception e) {
+                            sendNotFound(exchange, value);
+                        }
                     }
-                    break;
 
                 case "POST":
-                    String stringTask = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-                    try {
-                        if (option == -1) {
-                            fileBackedTaskManager.addEpic((Epic)FileBackedTaskManager.fromString(stringTask));
-                        } else {
-                            fileBackedTaskManager.updateEpic((Epic)FileBackedTaskManager.fromString(stringTask));
-                        }
-                        sendText(exchange, "{message: Subtask processed successfully.}", 200);
-                    } catch (ManagerSaveException e) {
-                        sendHasInteractions(exchange, "Subtask");
-                    }
+                    System.out.println("/POST");
+                    String requestBody = readRequestBody(exchange);
+                    Epic epic = gson.fromJson(requestBody, Epic.class);
+                    fileBackedTaskManager.addEpic(epic);
+                    sendText(exchange, "", 201);
                     break;
 
                 case "DELETE":
-                    fileBackedTaskManager.deleteTask(option);
-                    sendText(exchange, "{message: Subtask deleted successfully.}", 200);
-                    break;
+                    System.out.println("/DELETE");
+                    String value = arrayPath[2].substring(1, arrayPath[2].length() - 1);
+                    fileBackedTaskManager.deleteEpic(Integer.parseInt(value));
+                    sendText(exchange, "", 200);
 
                 default:
-                    sendText(exchange, "{error: Method not allowed.}", 405);
+                    sendText(exchange, "{error: Метод не поддерживается.}", 405);
                     break;
             }
         }
@@ -295,18 +301,12 @@ public class HttpTaskServer {
     class HistoryHandler extends BaseHttpHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-
             String method = exchange.getRequestMethod();
-
             String response;
-            switch (method) {
-                case "GET":
-                    response = gson.toJson(fileBackedTaskManager.getHistory());
-                    break;
-
-                default:
-                    response = "Такого метода нет";
-                    break;
+            if (method.equals("GET")) {
+                response = gson.toJson(fileBackedTaskManager.getHistory());
+            } else {
+                response = "Такого метода нет";
             }
             sendText(exchange, response, 200);
         }
@@ -318,17 +318,13 @@ public class HttpTaskServer {
         public void handle(HttpExchange exchange) throws IOException {
             String method = exchange.getRequestMethod();
             String response;
-            switch (method) {
-                case "GET":
-                    response = gson.toJson(fileBackedTaskManager.getPrioritizedTasks());
-                    break;
-                default:
-                    response = "Такого метода нет";
-                    break;
+            if (method.equals("GET")) {
+                response = gson.toJson(fileBackedTaskManager.getPrioritizedTasks());
+            } else {
+                response = "Такого метода нет";
             }
             sendText(exchange, response, 200);
         }
-
     }
 
     public static void main(String[] args) throws IOException {
