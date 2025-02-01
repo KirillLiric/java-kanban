@@ -120,7 +120,6 @@ public class HttpTaskServer {
             String path = requestURI.toString();
             String[] arrayPath = path.split("/");
             String response;
-
             switch(method) {
                 case "GET":
                     System.out.println("/GET");
@@ -189,7 +188,6 @@ public class HttpTaskServer {
             String path = requestURI.toString();
             String[] arrayPath = path.split("/");
             String response;
-
             switch(method) {
                 case "GET":
                     System.out.println("/GET");
@@ -258,7 +256,6 @@ public class HttpTaskServer {
             String path = requestURI.toString();
             String[] arrayPath = path.split("/");
             String response;
-
             switch(method) {
                 case "GET":
                     System.out.println("/GET");
