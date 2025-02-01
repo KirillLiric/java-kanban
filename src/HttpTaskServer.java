@@ -120,7 +120,7 @@ public class HttpTaskServer {
             String path = requestURI.toString();
             String[] arrayPath = path.split("/");
             String response;
-            switch(method){
+            switch (method) {
                 case "GET":
                     System.out.println("/GET");
                     if (arrayPath.length == 2) {
@@ -185,7 +185,7 @@ public class HttpTaskServer {
             String path = requestURI.toString();
             String[] arrayPath = path.split("/");
             String response;
-            switch(method){
+            switch (method) {
                 case "GET":
                     System.out.println("/GET");
                     if (arrayPath.length == 2) {
@@ -201,7 +201,6 @@ public class HttpTaskServer {
                         }
                     }
                     break;
-
                 case "POST":
                     System.out.println("/POST");
                     String requestBody = readRequestBody(exchange);
@@ -228,14 +227,12 @@ public class HttpTaskServer {
                         }
                     }
                     break;
-
                 case "DELETE":
                     System.out.println("/DELETE");
                     String value = arrayPath[2];
                     fileBackedTaskManager.deleteSubtask(Integer.parseInt(value));
                     sendText(exchange, "", 200);
                     break;
-
                 default:
                     sendText(exchange, "{error: Метод не поддерживается.}", 405);
                     break;
@@ -253,7 +250,7 @@ public class HttpTaskServer {
             String path = requestURI.toString();
             String[] arrayPath = path.split("/");
             String response;
-            switch(method){
+            switch (method) {
                 case "GET":
                     System.out.println("/GET");
                     if (arrayPath.length == 2) {
@@ -278,7 +275,6 @@ public class HttpTaskServer {
                         }
                     }
                     break;
-
                 case "POST":
                     System.out.println("/POST");
                     String requestBody = readRequestBody(exchange);
@@ -286,14 +282,12 @@ public class HttpTaskServer {
                     fileBackedTaskManager.addEpic(epic);
                     sendText(exchange, "", 201);
                     break;
-
                 case "DELETE":
                     System.out.println("/DELETE");
                     String value = arrayPath[2];
                     fileBackedTaskManager.deleteEpic(Integer.parseInt(value));
                     sendText(exchange, "", 200);
                     break;
-
                 default:
                     sendText(exchange, "{error: Метод не поддерживается.}", 405);
                     break;
