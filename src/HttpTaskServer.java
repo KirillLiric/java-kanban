@@ -14,7 +14,9 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.lang.reflect.Type;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 public class HttpTaskServer {
@@ -122,7 +124,7 @@ public class HttpTaskServer {
                         response = gson.toJson(fileBackedTaskManager.getTaskMap());
                         sendText(exchange, response, 200);
                     } else if (arrayPath.length == 3) {
-                        String value = arrayPath[2].substring(1, arrayPath[2].length() - 1);
+                        String value = arrayPath[2].substring(3, arrayPath[2].length() - 3);
                         try {
                             response = gson.toJson(fileBackedTaskManager.getTaskFromMap(Integer.parseInt(value)));
                             sendText(exchange, response, 200);
@@ -130,6 +132,7 @@ public class HttpTaskServer {
                             sendNotFound(exchange, value);
                         }
                     }
+                    break;
 
                 case "POST":
                     System.out.println("/POST");
@@ -160,9 +163,10 @@ public class HttpTaskServer {
 
                 case "DELETE":
                     System.out.println("/DELETE");
-                    String value = arrayPath[2].substring(1, arrayPath[2].length() - 1);
+                    String value = arrayPath[2].substring(3, arrayPath[2].length() - 3);
                     fileBackedTaskManager.deleteTask(Integer.parseInt(value));
                     sendText(exchange, "", 200);
+                    break;
 
                 default:
                     sendText(exchange, "{error: Метод не поддерживается.}", 405);
@@ -190,7 +194,7 @@ public class HttpTaskServer {
                         response = gson.toJson(fileBackedTaskManager.getSubtaskMap());
                         sendText(exchange, response, 200);
                     } else if (arrayPath.length == 3) {
-                        String value = arrayPath[2].substring(1, arrayPath[2].length() - 1);
+                        String value = arrayPath[2].substring(3, arrayPath[2].length() - 3);
                         try {
                             response = gson.toJson(fileBackedTaskManager.getSubtaskFromMap(Integer.parseInt(value)));
                             sendText(exchange, response, 200);
@@ -198,6 +202,7 @@ public class HttpTaskServer {
                             sendNotFound(exchange, value);
                         }
                     }
+                    break;
 
                 case "POST":
                     System.out.println("/POST");
@@ -228,9 +233,10 @@ public class HttpTaskServer {
 
                 case "DELETE":
                     System.out.println("/DELETE");
-                    String value = arrayPath[2].substring(1, arrayPath[2].length() - 1);
+                    String value = arrayPath[2].substring(3, arrayPath[2].length() - 3);
                     fileBackedTaskManager.deleteSubtask(Integer.parseInt(value));
                     sendText(exchange, "", 200);
+                    break;
 
                 default:
                     sendText(exchange, "{error: Метод не поддерживается.}", 405);
@@ -258,7 +264,7 @@ public class HttpTaskServer {
                         response = gson.toJson(fileBackedTaskManager.getEpicMap());
                         sendText(exchange, response, 200);
                     } else if (arrayPath.length == 3) {
-                        String value = arrayPath[2].substring(1, arrayPath[2].length() - 1);
+                        String value = arrayPath[2].substring(3, arrayPath[2].length() - 3);
                         try {
                             response = gson.toJson(fileBackedTaskManager.getEpicFromMap(Integer.parseInt(value)));
                             sendText(exchange, response, 200);
@@ -266,7 +272,7 @@ public class HttpTaskServer {
                             sendNotFound(exchange, value);
                         }
                     } else if ((arrayPath.length == 4) && (arrayPath[3].equals("subtasks"))) {
-                        String value = arrayPath[2].substring(1, arrayPath[2].length() - 1);
+                        String value = arrayPath[2].substring(3, arrayPath[2].length() - 3);
                         try {
                             Epic epic = (Epic) fileBackedTaskManager.getEpicFromMap(Integer.parseInt(value));
                             response = gson.toJson(epic.getEpicSubtaskMap());
@@ -275,6 +281,7 @@ public class HttpTaskServer {
                             sendNotFound(exchange, value);
                         }
                     }
+                    break;
 
                 case "POST":
                     System.out.println("/POST");
@@ -286,9 +293,10 @@ public class HttpTaskServer {
 
                 case "DELETE":
                     System.out.println("/DELETE");
-                    String value = arrayPath[2].substring(1, arrayPath[2].length() - 1);
+                    String value = arrayPath[2].substring(3, arrayPath[2].length() - 3);
                     fileBackedTaskManager.deleteEpic(Integer.parseInt(value));
                     sendText(exchange, "", 200);
+                    break;
 
                 default:
                     sendText(exchange, "{error: Метод не поддерживается.}", 405);
@@ -329,55 +337,14 @@ public class HttpTaskServer {
 
     public static void main(String[] args) throws IOException {
 
-//        class LocalDateTimeAdapter implements JsonSerializer<LocalDateTime>, JsonDeserializer<LocalDateTime> {
-//            private final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-//
-//            @Override
-//            public JsonElement serialize(LocalDateTime localDateTime, Type typeOfSrc, JsonSerializationContext context) {
-//                return new JsonPrimitive(localDateTime.format(formatter));
-//            }
-//
-//            @Override
-//            public LocalDateTime deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-//                return LocalDateTime.parse(json.getAsString(), formatter);
-//            }
-//        }
-//
-//        class DurationAdapter implements JsonSerializer<Duration>, JsonDeserializer<Duration> {
-//            @Override
-//            public JsonElement serialize(Duration duration, Type typeOfSrc, JsonSerializationContext context) {
-//                return new JsonPrimitive(duration.getSeconds());
-//            }
-//
-//            @Override
-//            public Duration deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-//                return Duration.ofSeconds(json.getAsLong());
-//            }
-//        }
-//
-//        Gson gson = new GsonBuilder()
-//                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-//                .registerTypeAdapter(Duration.class, new DurationAdapter())
-//                .create();
-//
-//        Task task = new Task("Test 2", "Testing task 2",
-//                Status.NEW, Duration.ofMinutes(5), LocalDateTime.now());
-//
-//        gson.toJson(task);
-//        System.out.println(gson.toJson(task));
-//
-//        Task testTask = gson.fromJson(gson.toJson(task), Task.class);
-//
-//        System.out.println(testTask.getName());
-//        System.out.println(testTask.getStartTime());
+
 
         File file = File.createTempFile("tempFile", ".txt");
-        TaskManager inMemoryTaskManager = Managers.getDefault();
         TaskManager fileBackedTaskManager = Managers.getDefaultFileBackedTaskManager(file.toPath());
+        TaskManager inMemoryTaskManager = Managers.getDefault();
+
         HttpTaskServer httpTaskServer = new HttpTaskServer((InMemoryTaskManager) inMemoryTaskManager,
                 (FileBackedTaskManager) fileBackedTaskManager);
         httpTaskServer.server.start();
-
-
     }
 }

@@ -169,7 +169,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public void addSubtask(Subtask subtask) {
-        if (!prioritizedList.stream().anyMatch(streamTask -> isOverlap(subtask, streamTask))) {
+        if (!prioritizedList.stream()
+                .anyMatch(streamTask -> isOverlap(subtask, streamTask))) {
             super.addSubtask(subtask);
             prioritizedList.add(subtask);
             epicMap.get(subtask.getEpicID()).checkTime();
@@ -203,7 +204,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public void updateSubtask(Subtask subtask) {
-        if (!prioritizedList.stream().filter(streamTask -> !streamTask.equals(subtask))
+        if (!prioritizedList.stream().filter(streamTask -> !streamTask.equals(epicMap.get(subtask.getEpicID())))
+                .filter(streamTask -> !streamTask.equals(subtask))
                 .anyMatch(streamTask -> isOverlap(subtask, streamTask))) {
             prioritizedList.remove(subtask);
             prioritizedList.add(subtask);
