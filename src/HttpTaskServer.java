@@ -122,7 +122,6 @@ public class HttpTaskServer {
             String response;
 
             switch(method) {
-
                 case "GET":
                     System.out.println("/GET");
                     if (arrayPath.length == 2) {
@@ -192,7 +191,6 @@ public class HttpTaskServer {
             String response;
 
             switch(method) {
-
                 case "GET":
                     System.out.println("/GET");
                     if (arrayPath.length == 2) {
@@ -262,7 +260,6 @@ public class HttpTaskServer {
             String response;
 
             switch(method) {
-
                 case "GET":
                     System.out.println("/GET");
                     if (arrayPath.length == 2) {
