@@ -4,7 +4,6 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import managers.*;
 import task.Epic;
-import task.Status;
 import task.Subtask;
 import task.Task;
 
@@ -14,9 +13,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.lang.reflect.Type;
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 public class HttpTaskServer {
@@ -55,6 +52,14 @@ public class HttpTaskServer {
     private final InMemoryTaskManager inMemoryTaskManager;
     private final FileBackedTaskManager fileBackedTaskManager;
     HttpServer server;
+
+    public void start() {
+        server.start();
+    }
+
+    public void stop() {
+        server.stop(1);
+    }
 
     HttpTaskServer(InMemoryTaskManager inMemoryTaskManager, FileBackedTaskManager fileBackedTaskManager) {
         this.inMemoryTaskManager = inMemoryTaskManager;
@@ -124,7 +129,7 @@ public class HttpTaskServer {
                         response = gson.toJson(fileBackedTaskManager.getTaskMap());
                         sendText(exchange, response, 200);
                     } else if (arrayPath.length == 3) {
-                        String value = arrayPath[2].substring(3, arrayPath[2].length() - 3);
+                        String value = arrayPath[2];
                         try {
                             response = gson.toJson(fileBackedTaskManager.getTaskFromMap(Integer.parseInt(value)));
                             sendText(exchange, response, 200);
@@ -163,7 +168,7 @@ public class HttpTaskServer {
 
                 case "DELETE":
                     System.out.println("/DELETE");
-                    String value = arrayPath[2].substring(3, arrayPath[2].length() - 3);
+                    String value = arrayPath[2];
                     fileBackedTaskManager.deleteTask(Integer.parseInt(value));
                     sendText(exchange, "", 200);
                     break;
@@ -264,7 +269,7 @@ public class HttpTaskServer {
                         response = gson.toJson(fileBackedTaskManager.getEpicMap());
                         sendText(exchange, response, 200);
                     } else if (arrayPath.length == 3) {
-                        String value = arrayPath[2].substring(3, arrayPath[2].length() - 3);
+                        String value = arrayPath[2];
                         try {
                             response = gson.toJson(fileBackedTaskManager.getEpicFromMap(Integer.parseInt(value)));
                             sendText(exchange, response, 200);
@@ -272,7 +277,7 @@ public class HttpTaskServer {
                             sendNotFound(exchange, value);
                         }
                     } else if ((arrayPath.length == 4) && (arrayPath[3].equals("subtasks"))) {
-                        String value = arrayPath[2].substring(3, arrayPath[2].length() - 3);
+                        String value = arrayPath[2];
                         try {
                             Epic epic = (Epic) fileBackedTaskManager.getEpicFromMap(Integer.parseInt(value));
                             response = gson.toJson(epic.getEpicSubtaskMap());
@@ -293,7 +298,7 @@ public class HttpTaskServer {
 
                 case "DELETE":
                     System.out.println("/DELETE");
-                    String value = arrayPath[2].substring(3, arrayPath[2].length() - 3);
+                    String value = arrayPath[2];
                     fileBackedTaskManager.deleteEpic(Integer.parseInt(value));
                     sendText(exchange, "", 200);
                     break;
@@ -336,8 +341,6 @@ public class HttpTaskServer {
     }
 
     public static void main(String[] args) throws IOException {
-
-
 
         File file = File.createTempFile("tempFile", ".txt");
         TaskManager fileBackedTaskManager = Managers.getDefaultFileBackedTaskManager(file.toPath());
