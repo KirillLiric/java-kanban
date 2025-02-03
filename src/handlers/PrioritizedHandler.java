@@ -20,7 +20,9 @@ public class PrioritizedHandler extends BaseHttpHandler implements HttpHandler {
     }
 
     @Override
-    public void processGet(HttpExchange exchange) {
-
+    public void processGet(HttpExchange exchange) throws IOException {
+        String response;
+        response = gson.toJson(manager.getPrioritizedList());
+        sendText(exchange, response, 200);
     }
 }

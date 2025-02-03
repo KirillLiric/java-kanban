@@ -3,8 +3,10 @@ package handlers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import managers.TaskManager;
+import task.Epic;
 
 import java.io.IOException;
+import java.net.URI;
 
 public class HistoryHandler extends BaseHttpHandler implements HttpHandler {
 
@@ -16,13 +18,13 @@ public class HistoryHandler extends BaseHttpHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        String method = exchange.getRequestMethod();
+        super.handle(exchange);
+    }
+
+    @Override
+    public void processGet(HttpExchange exchange) throws IOException {
         String response;
-        if (method.equals("GET")) {
-            response = gson.toJson(manager.getHistory());
-        } else {
-            response = "Такого метода нет";
-        }
+        response = gson.toJson(manager.getHistory());
         sendText(exchange, response, 200);
     }
 }

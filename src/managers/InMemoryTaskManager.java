@@ -6,17 +6,15 @@ import task.Subtask;
 import task.Task;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class InMemoryTaskManager implements TaskManager {
 
-     HashMap<Integer, Epic> epicMap = new HashMap<>();
-     HashMap<Integer, Task> taskMap = new HashMap<>();
-     HashMap<Integer, Subtask> subtaskMap = new HashMap<>();
+    HashMap<Integer, Epic> epicMap = new HashMap<>();
+    HashMap<Integer, Task> taskMap = new HashMap<>();
+    HashMap<Integer, Subtask> subtaskMap = new HashMap<>();
+    private final TreeSet<Task> prioritizedList = new TreeSet<>(Comparator.comparing(Task::getStartTime));
 
     private final HistoryManager historyManager = Managers.getDefaultHistory();
 
@@ -38,7 +36,6 @@ public class InMemoryTaskManager implements TaskManager {
         return (task1.getStartTime().isBefore(end2) && end1.isAfter(task2.getStartTime()));
     }
 
-    //Получение списка задач
     @Override
     public HashMap<Integer, Epic> getEpicMap() {
         return epicMap;
@@ -54,7 +51,6 @@ public class InMemoryTaskManager implements TaskManager {
         return subtaskMap;
     }
 
-    //Удаление всех задач
     @Override
     public void deleteEpicMap() {
         epicMap.clear();
@@ -73,8 +69,6 @@ public class InMemoryTaskManager implements TaskManager {
             epicMap.get(i).setStatus(Status.NEW);
         }
     }
-
-    //Получение по id
 
     @Override
     public Task getEpicFromMap(int id) {
@@ -106,13 +100,17 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-    //Создание
-
     @Override
     public void addTask(Task task) {
-        int id = nextId++;
-        task.setId(id);
-        taskMap.put(task.getId(), task);
+        if (!prioritizedList.stream()
+                .anyMatch(streamTask -> isOverlap(task, streamTask))) {
+            int id = nextId++;
+            task.setId(id);
+            taskMap.put(task.getId(), task);
+            prioritizedList.add(task);
+        } else {
+            throw new ManagerSaveException("Пересечение по времени");
+        }
     }
 
     @Override
@@ -123,17 +121,30 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void addSubtask(Subtask subtask) {
-        subtask.setId(nextId++);
-        subtaskMap.put(subtask.getId(), subtask);
-        epicMap.get(subtask.getEpicID()).getEpicSubtaskMap().put(subtask.getId(), subtask);
-        epicMap.get(subtask.getEpicID()).checkStatus();
+        if (!prioritizedList.stream()
+                .anyMatch(streamTask -> isOverlap(subtask, streamTask))) {
+            subtask.setId(nextId++);
+            subtaskMap.put(subtask.getId(), subtask);
+            epicMap.get(subtask.getEpicID()).getEpicSubtaskMap().put(subtask.getId(), subtask);
+            epicMap.get(subtask.getEpicID()).checkStatus();
+            epicMap.get(subtask.getEpicID()).checkTime();
+            prioritizedList.add(subtask);
+        } else {
+            throw new ManagerSaveException("Пересечение по времени");
+        }
     }
-
-    //Обновление
 
     @Override
     public void updateTask(Task task) {
-        taskMap.put(task.getId(), task);
+        if (!prioritizedList.stream().filter(streamTask -> !streamTask.equals(task))
+                .anyMatch(streamTask -> isOverlap(task, streamTask))) {
+            prioritizedList.remove(task);
+            prioritizedList.add(task);
+            taskMap.put(task.getId(), task);
+        } else {
+            throw new ManagerSaveException("Пересечение по времени");
+        }
+
     }
 
     @Override
@@ -144,17 +155,25 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateSubtask(Subtask subtask) {
-        subtaskMap.put(subtask.getId(), subtask);
-        Epic epic = epicMap.get(subtask.getEpicID());
-        HashMap<Integer, Subtask> epicSubtaskMap = epic.getEpicSubtaskMap();
-        epicSubtaskMap.put(subtask.getId(), subtask);
-        epic.checkStatus();
+        if (!prioritizedList.stream().filter(streamTask -> !streamTask.equals(epicMap.get(subtask.getEpicID())))
+                .filter(streamTask -> !streamTask.equals(subtask))
+                .anyMatch(streamTask -> isOverlap(subtask, streamTask))) {
+            prioritizedList.remove(subtask);
+            prioritizedList.add(subtask);
+            subtaskMap.put(subtask.getId(), subtask);
+            Epic epic = epicMap.get(subtask.getEpicID());
+            HashMap<Integer, Subtask> epicSubtaskMap = epic.getEpicSubtaskMap();
+            epicSubtaskMap.put(subtask.getId(), subtask);
+            epic.checkStatus();
+            epic.checkTime();
+        } else {
+            throw new ManagerSaveException("Пересечение по времени");
+        }
     }
-
-    //Удаление по id
 
     @Override
     public void deleteTask(int id) {
+        prioritizedList.remove(taskMap.get(id));
         taskMap.remove(id);
         historyManager.remove(id);
     }
@@ -173,6 +192,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void deleteSubtask(int id) {
+        prioritizedList.remove(subtaskMap.get(id));
         Subtask subtask = subtaskMap.get(id);
         Epic epic = epicMap.get(subtask.getEpicID());
         HashMap<Integer, Subtask> epicSubtaskMap = epic.getEpicSubtaskMap();
@@ -183,19 +203,18 @@ public class InMemoryTaskManager implements TaskManager {
         subtaskMap.remove(subtask.getId());
     }
 
-
-    //Получение списка всех подзадач эпика
-
     @Override
     public HashMap<Integer, Subtask> getSubtaskMapFromEpic(Epic epic) {
         return epic.getEpicSubtaskMap();
     }
 
-    //Получение истории
-
     @Override
     public List<Task> getHistory() {
         return historyManager.getHistory();
+    }
+
+    public TreeSet<Task> getPrioritizedList() {
+        return prioritizedList;
     }
 
 }

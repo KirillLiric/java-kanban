@@ -77,7 +77,7 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
         String path = requestURI.toString();
         String[] arrayPath = path.split("/");
         String value = arrayPath[2];
-        manager.deleteEpic(Integer.parseInt(value));
+        manager.deleteTask(Integer.parseInt(value));
         sendText(exchange, "", 200);
     }
 }

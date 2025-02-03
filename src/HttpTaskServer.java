@@ -30,8 +30,7 @@ public class HttpTaskServer {
     }
 
     public static void main(String[] args) throws IOException {
-        File file = File.createTempFile("tempFile", ".txt");
-        TaskManager inMemoryTaskManager = Managers.getDefaultFileBackedTaskManager(file.toPath());
+        TaskManager inMemoryTaskManager = Managers.getDefault();
         HttpTaskServer httpTaskServer = new HttpTaskServer(inMemoryTaskManager);
         httpTaskServer.server.start();
     }

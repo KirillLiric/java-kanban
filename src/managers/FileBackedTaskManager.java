@@ -15,11 +15,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     private final Path saveFile;
 
-    private final TreeSet<Task> prioritizedList;
 
     public FileBackedTaskManager(Path saveFile) {
         this.saveFile = saveFile;
-        this.prioritizedList = new TreeSet<>(Comparator.comparing(Task::getStartTime));
     }
 
     private void save() {
@@ -121,17 +119,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 .collect(Collectors.toList());
     }
 
-    private boolean isOverlap(Task task1, Task task2) {
-        if (task1.getStartTime() == null || task2.getStartTime() == null) {
-            return false;
-        }
-        LocalDateTime end1 = task1.getEndTime();
-        LocalDateTime end2 = task2.getEndTime();
-        return (task1.getStartTime().isBefore(end2) && end1.isAfter(task2.getStartTime()));
-    }
-
-    //Удаление всех задач
-
     @Override
     public void deleteEpicMap() {
         super.deleteEpicMap();
@@ -152,13 +139,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public void addTask(Task task) {
-        if (!prioritizedList.stream().anyMatch(streamTask -> isOverlap(task, streamTask))) {
             super.addTask(task);
-            prioritizedList.add(task);
             save();
-        } else {
-            throw new ManagerSaveException("Пересечение по времени");
-        }
     }
 
     @Override
@@ -169,31 +151,14 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public void addSubtask(Subtask subtask) {
-        if (!prioritizedList.stream()
-                .anyMatch(streamTask -> isOverlap(subtask, streamTask))) {
             super.addSubtask(subtask);
-            prioritizedList.add(subtask);
-            epicMap.get(subtask.getEpicID()).checkTime();
             save();
-        } else {
-            throw new ManagerSaveException("Пересечение по времени");
-        }
-
     }
-
-    //Обновление
 
     @Override
     public void updateTask(Task task) {
-        if (!prioritizedList.stream().filter(streamTask -> !streamTask.equals(task))
-                        .anyMatch(streamTask -> isOverlap(task, streamTask))) {
-            prioritizedList.remove(task);
-            prioritizedList.add(task);
-            super.updateTask(task);
+           super.updateTask(task);
             save();
-        } else {
-            throw new ManagerSaveException("Пересечение по времени");
-        }
     }
 
     @Override
@@ -204,23 +169,12 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public void updateSubtask(Subtask subtask) {
-        if (!prioritizedList.stream().filter(streamTask -> !streamTask.equals(epicMap.get(subtask.getEpicID())))
-                .filter(streamTask -> !streamTask.equals(subtask))
-                .anyMatch(streamTask -> isOverlap(subtask, streamTask))) {
-            prioritizedList.remove(subtask);
-            prioritizedList.add(subtask);
             super.updateSubtask(subtask);
             save();
-        } else {
-            throw new ManagerSaveException("Пересечение по времени");
-        }
     }
-
-    //Удаление по Id
 
     @Override
     public void deleteTask(int id) {
-        prioritizedList.remove(taskMap.get(id));
         super.deleteTask(id);
         save();
     }
@@ -233,7 +187,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public void deleteSubtask(int id) {
-        prioritizedList.remove(subtaskMap.get(id));
         super.deleteSubtask(id);
         save();
     }
