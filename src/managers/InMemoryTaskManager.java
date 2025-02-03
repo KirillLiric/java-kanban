@@ -5,9 +5,12 @@ import task.Status;
 import task.Subtask;
 import task.Task;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 public class InMemoryTaskManager implements TaskManager {
 
@@ -18,6 +21,22 @@ public class InMemoryTaskManager implements TaskManager {
     private final HistoryManager historyManager = Managers.getDefaultHistory();
 
     static int nextId = 0;
+
+    public List<Task> getPrioritizedTasks() {
+        return taskMap.values().stream()
+                .filter(task -> task.getStartTime() != null) // Игнорируем задачи без времени начала
+                .sorted(Comparator.comparing(Task::getStartTime))
+                .collect(Collectors.toList());
+    }
+
+    private boolean isOverlap(Task task1, Task task2) {
+        if (task1.getStartTime() == null || task2.getStartTime() == null) {
+            return false;
+        }
+        LocalDateTime end1 = task1.getEndTime();
+        LocalDateTime end2 = task2.getEndTime();
+        return (task1.getStartTime().isBefore(end2) && end1.isAfter(task2.getStartTime()));
+    }
 
     //Получение списка задач
     @Override
