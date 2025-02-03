@@ -17,8 +17,8 @@ import java.time.LocalDateTime;
 public class BaseHttpHandler {
 
     protected Gson gson = new GsonBuilder()
-            .registerTypeAdapter(LocalDateTime .class, new LocalDateTimeAdapter())
-            .registerTypeAdapter(Duration .class, new DurationAdapter())
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+            .registerTypeAdapter(Duration.class, new DurationAdapter())
             .create();
 
     protected String readRequestBody(HttpExchange exchange) throws IOException {
