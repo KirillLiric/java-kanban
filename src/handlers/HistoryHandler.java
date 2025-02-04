@@ -3,10 +3,8 @@ package handlers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import managers.TaskManager;
-import task.Epic;
 
 import java.io.IOException;
-import java.net.URI;
 
 public class HistoryHandler extends BaseHttpHandler implements HttpHandler {
 
