@@ -12,7 +12,7 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
 
     TaskManager manager;
 
-    public TasksHandler(TaskManager manager){
+    public TasksHandler(TaskManager manager) {
         this.manager = manager;
     }
 
