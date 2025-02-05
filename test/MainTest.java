@@ -1,8 +1,6 @@
 import managers.*;
 import org.junit.jupiter.api.Test;
-import task.Epic;
 import task.Status;
-import task.Subtask;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -10,7 +8,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MainTest {
 

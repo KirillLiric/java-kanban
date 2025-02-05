@@ -29,20 +29,20 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
         task1.setStartTime("2024-12-20T12:00:00.000000");
         task1.setDuration("15");
         Task task2 = new Task("TestTask2", "Description2");
-        task2.setStartTime("2024-12-20T12:00:00.000000");
+        task2.setStartTime("2024-12-20T12:30:00.000000");
         task2.setDuration("15");
         Task task3 = new Task("TestTask3", "Description3");
-        task3.setStartTime("2024-12-22T12:30:00.000000");
+        task3.setStartTime("2024-12-22T12:50:00.000000");
         task3.setDuration("15");
 
         manager.addTask(task1);
         manager.addTask(task2);
 
-        assertEquals(1, manager.getPrioritizedTasks().size(), "Добавляет пересекающиеся по времени " +
+        assertEquals(2, manager.getPrioritizedTasks().size(), "Добавляет пересекающиеся по времени " +
                 "задачи");
 
         manager.addTask(task3);
-        assertEquals(2, manager.getPrioritizedTasks().size(), "Добавление задачи не происходит");
+        assertEquals(3, manager.getPrioritizedTasks().size(), "Добавление задачи не происходит");
     }
 
 

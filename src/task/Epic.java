@@ -7,13 +7,12 @@ import java.util.Optional;
 
 public class Epic extends Task {
 
-    protected LocalDateTime startTime;
-    protected Duration duration;
-    private HashMap<Integer, Subtask> epicSubtaskMap;
+    protected LocalDateTime epicStartTime;
+    protected Duration epicDuration;
+    private HashMap<Integer, Subtask> epicSubtaskMap = new HashMap<>();
 
     public Epic(String name, String description) {
         super(name, description);
-        this.epicSubtaskMap = new HashMap<>();
     }
 
     public HashMap<Integer, Subtask> getEpicSubtaskMap() {
@@ -23,9 +22,9 @@ public class Epic extends Task {
     @Override
     public String toString() {
 
-        if (!(startTime == null || duration == null)) {
+        if (!(startTime == null || epicDuration == null)) {
             return super.id + "," + Tasks.EPIC + "," + super.name + "," + super.status + "," + super.description + ","
-                    + startTime + "," + duration.toMinutes();
+                    + epicStartTime + "," + epicDuration.toMinutes();
         } else {
             return super.id + "," + Tasks.EPIC + "," + super.name + "," + super.status + "," + super.description;
         }
@@ -55,8 +54,8 @@ public class Epic extends Task {
     }
 
     public void checkTime() {
-        startTime = getStartTime();
-        duration = getDuration();
+        epicStartTime = getStartTime();
+        epicDuration = getDuration();
     }
 
     public void checkStatus() {
